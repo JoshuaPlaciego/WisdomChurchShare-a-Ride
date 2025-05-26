@@ -88,4 +88,123 @@
     <div class="message" id="signup-message"></div>
     <div>
       <label for="name">Full Name</label>
-      <input type="text" id="name" name="name" required autocomplete="na
+      <input type="text" id="name" name="name" required autocomplete="name" />
+    </div>
+    <div>
+      <label for="email">Email Address</label>
+      <input type="email" id="email" name="email" required autocomplete="email" />
+    </div>
+    <div>
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required autocomplete="new-password" />
+    </div>
+    <button type="submit">Sign Up</button>
+    <div class="link">Already have an account? <a id="goto-login" href="#">Login</a></div>
+  </form>
+
+  <!-- Email Verification Form -->
+  <form id="verify-form" style="display:none;">
+    <h2>Email Verification</h2>
+    <div class="message" id="verify-message"></div>
+    <div>
+      <label for="verification-code">Verification Code</label>
+      <input type="number" id="verification-code" name="verification-code" required />
+    </div>
+    <button type="submit">Verify Email</button>
+    <div class="link"><a id="resend-code" href="#">Resend Code</a></div>
+  </form>
+
+</div>
+
+<script>
+  const signupForm = document.getElementById('signup-form');
+  const verifyForm = document.getElementById('verify-form');
+  const signupMessage = document.getElementById('signup-message');
+  const verifyMessage = document.getElementById('verify-message');
+
+  // On signup form submit
+  signupForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    signupMessage.style.display = 'none';
+
+    const name = signupForm.name.value.trim();
+    const email = signupForm.email.value.trim();
+    const password = signupForm.password.value;
+
+    // Basic validation
+    if (!name || !email || !password) {
+      showMessage(signupMessage, 'Please fill all fields', 'error');
+      return;
+    }
+
+    // TODO: Call your backend API here to create user and send verification email
+    // For demonstration, simulate API call with timeout
+    try {
+      showMessage(signupMessage, 'Signing up...', 'success');
+      await new Promise(r => setTimeout(r, 1500));
+
+      // Assume success response
+      showMessage(signupMessage, 'Sign up successful! Verification code sent to your email.', 'success');
+
+      // Hide signup form, show verify form
+      signupForm.style.display = 'none';
+      verifyForm.style.display = 'block';
+
+    } catch(err) {
+      showMessage(signupMessage, 'Error during sign up. Try again.', 'error');
+    }
+  });
+
+  // On verification form submit
+  verifyForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    verifyMessage.style.display = 'none';
+
+    const code = verifyForm['verification-code'].value.trim();
+    if (!code) {
+      showMessage(verifyMessage, 'Please enter the verification code.', 'error');
+      return;
+    }
+
+    // TODO: Call your backend API here to verify the code
+    try {
+      showMessage(verifyMessage, 'Verifying...', 'success');
+      await new Promise(r => setTimeout(r, 1500));
+
+      // Simulate correct code is "123456"
+      if (code === '123456') {
+        showMessage(verifyMessage, 'Email verified successfully! You can now login.', 'success');
+        // Optionally redirect or reset form here
+      } else {
+        showMessage(verifyMessage, 'Incorrect verification code. Please try again.', 'error');
+      }
+    } catch(err) {
+      showMessage(verifyMessage, 'Verification failed. Try again.', 'error');
+    }
+  });
+
+  // Resend code link
+  document.getElementById('resend-code').addEventListener('click', async e => {
+    e.preventDefault();
+    verifyMessage.style.display = 'none';
+    showMessage(verifyMessage, 'Resending verification code...', 'success');
+    await new Promise(r => setTimeout(r, 1500));
+    showMessage(verifyMessage, 'Verification code resent! Check your email.', 'success');
+  });
+
+  // Switch to login link (placeholder)
+  document.getElementById('goto-login').addEventListener('click', e => {
+    e.preventDefault();
+    alert('Switch to Login form - implement as needed');
+  });
+
+  // Utility function to show messages
+  function showMessage(element, msg, type = 'success') {
+    element.textContent = msg;
+    element.className = 'message ' + (type === 'success' ? 'success' : 'error');
+    element.style.display = 'block';
+  }
+</script>
+
+</body>
+</html>
