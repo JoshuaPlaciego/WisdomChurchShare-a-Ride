@@ -437,7 +437,7 @@
                     <input type="text" id="destination" placeholder="e.g., Church, Home, Event Venue" class="w-full" required>
                     <div id="destination-error" class="text-red-500 text-sm mt-1" style="display:none;"></div>
                 </div>
-                <button id="submitRequestBtn" class="w-full">Submit Request <span id="request-spinner" class="loading-spinner"></span></button>
+                <button type="submit" class="w-full">Submit Request <span id="request-spinner" class="loading-spinner"></span></button>
             </div>
 
             <div class="dashboard-grid">
@@ -462,15 +462,15 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script>
-        // Firebase Configuration - REPLACE WITH YOUR ACTUAL CONFIG
-        // You get this from your Firebase Project Settings -> Your apps -> Web app
+        // Firebase Configuration - REPLACED WITH YOUR ACTUAL CONFIG
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET", // This can remain, it's just a config value. App won't use it.
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyDuRG37e5qWu1kN7aZQVBwyQwj1EbIieHE",
+            authDomain: "wcsharearideinitiativeproject.firebaseapp.com",
+            projectId: "wcsharearideinitiativeproject",
+            storageBucket: "wcsharearideinitiativeproject.firebasestorage.app",
+            messagingSenderId: "169826993800",
+            appId: "1:169826993800:web:367bee8597df79406b813d",
+            measurementId: "G-7RJV9Q4NCT" // Measurement ID for Google Analytics (optional)
         };
 
         // Initialize Firebase
@@ -497,7 +497,6 @@
         const signupEmailInput = document.getElementById('signup_email');
         const signupPasswordInput = document.getElementById('signup_password');
         const mobileNumberInput = document.getElementById('mobile_number');
-        // Removed selfieWithIdInput: const selfieWithIdInput = document.getElementById('selfie_with_id');
         const signupSpinner = document.getElementById('signup-spinner');
 
         // Login Form Elements
@@ -668,7 +667,6 @@
             else if (signupPasswordInput.value.trim().length < 6) { formErrorResponse('signup_password-error', 'Password must be at least 6 characters long'); isValid = false; }
             if (!mobileNumberInput.value.trim()) { formErrorResponse('mobile_number-error', 'Mobile Number is required'); isValid = false; }
             else if (!/^09\d{9}$/.test(mobileNumberInput.value)) { formErrorResponse('mobile_number-error', 'Mobile Number must be 11 digits starting with 09'); isValid = false; }
-            // Removed selfie validation: if (!selfieWithIdInput.files.length) { formErrorResponse('selfie_with_id-error', 'Selfie is required'); isValid = false; }
 
             if (!isValid) {
                 showMessage('Please correct the errors in the form.', 'error');
@@ -682,7 +680,6 @@
                 const userCredential = await auth.createUserWithEmailAndPassword(signupEmailInput.value, signupPasswordInput.value);
                 const user = userCredential.user;
 
-                // Removed selfie upload logic entirely.
                 // 2. Store user profile data in Firestore
                 await db.collection('users').doc(user.uid).set({
                     firstName: firstNameInput.value,
@@ -692,7 +689,6 @@
                     facebookLink: facebookLinkInput.value,
                     email: signupEmailInput.value,
                     mobileNumber: mobileNumberInput.value,
-                    // Removed selfieUrl from here as well
                     role: 'rider', // Default role for new users
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
