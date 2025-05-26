@@ -1,8 +1,8 @@
 // js/signup-form.js
 
 // Import Firebase instances and authentication function from firebase-init.js
-import { auth, db, appId, getUserId } from './firebase-init.js'; // Removed authenticateFirebase from import
-import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { auth, db, appId, getUserId } from './firebase-init.js';
+import { createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 
@@ -92,7 +92,6 @@ function updatePasswordStrength() {
 window.onload = () => {
     updatePasswordStrength(); // Initial check for password strength
 };
-// Removed the call to authenticateFirebase on window.onload as it's not needed for signup page directly.
 
 // Toggle password visibility
 togglePasswordButton.addEventListener('mousedown', () => {
@@ -221,15 +220,16 @@ signupForm.addEventListener('submit', async (event) => {
     // If all client-side validations pass, proceed with Firebase
     if (isValid) {
         try {
-            // Removed: if (!getUserId()) { await authenticateFirebase(); }
-            // The createUserWithEmailAndPassword function will handle user creation and authentication.
-
             // Create user in Firebase Authentication
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
             const userId = user.uid; // Get the newly created user's UID
 
-            // Prepare user data for Firestore
+            // --- Send Email Verification ---
+            await sendEmailVerification(user);
+            console.log("Verification email sent!");
+
+            // Prepare user data for Firestore, including a 'status' for admin approval
             const userData = {
                 firstName: firstNameInput.value.trim(),
                 lastName: lastNameInput.value.trim(),
@@ -239,15 +239,15 @@ signupForm.addEventListener('submit', async (event) => {
                 email: email,
                 mobileNumber: mobileNumber,
                 createdAt: new Date(),
-                userId: userId // Store the user's UID
+                userId: userId, // Store the user's UID
+                status: 'pending' // Initial status for admin approval
             };
 
             // Save user data to Firestore
-            // Ensure appId is correctly imported and available from firebase-init.js
             const userProfileDocRef = doc(db, `artifacts/${appId}/users/${userId}/user_profiles`, 'profile_data');
             await setDoc(userProfileDocRef, userData);
 
-            showMessage('Sign Up successful! Your data has been saved.', 'success');
+            showMessage('Sign Up successful! Please check your email for verification. Your account is pending admin approval.', 'success');
             signupForm.reset(); // Clear the form
             updatePasswordStrength(); // Reset password strength indicators
 
@@ -260,8 +260,10 @@ signupForm.addEventListener('submit', async (event) => {
             } else if (error.code === 'auth/weak-password') {
                 errorMessage = 'The password is too weak. Please use a stronger password.';
                 formErrorResponse('password-error', errorMessage);
+            } else if (error.code === 'auth/network-request-failed') {
+                errorMessage = 'Network error. Please check your internet connection.';
             } else if (error.message) {
-                errorMessage = error.message;
+                errorMessage = error.message; // Catch generic Firebase errors like "Missing or insufficient permissions."
             }
             showMessage(`Sign Up failed: ${errorMessage}`, 'error');
         }
