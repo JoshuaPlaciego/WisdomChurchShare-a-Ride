@@ -391,16 +391,16 @@
         import { getFirestore, doc, setDoc, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Your web app's Firebase configuration (provided by the user)
-        const firebaseConfig = {
-            apiKey: "AIzaSyDuRG37e5qWu1kN7aZQVBwyQwj1EbIieHE",
-            authDomain: "wcsharearideinitiativeproject.firebaseapp.com",
-            projectId: "wcsharearideinitiativeproject",
-            storageBucket: "wcsharearideinitiativeproject.firebasestorage.app",
-            messagingSenderId: "169826993800",
-            appId: "1:169826993800:web:367bee8597df79406b813d",
-            measurementId: "G-7RJV9Q4NCT"
-        };
-
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyDuRG37e5qWu1kN7aZQVBwyQwj1EbIieHE",
+  authDomain: "wcsharearideinitiativeproject.firebaseapp.com",
+  projectId: "wcsharearideinitiativeproject",
+  storageBucket: "wcsharearideinitiativeproject.firebasestorage.app",
+  messagingSenderId: "169826993800",
+  appId: "1:169826993800:web:367bee8597df79406b813d",
+  measurementId: "G-7RJV9Q4NCT"
+};
         // Firebase configuration and initialization
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Use __app_id for Firestore path
         const app = initializeApp(firebaseConfig);
