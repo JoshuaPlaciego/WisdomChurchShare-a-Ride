@@ -354,6 +354,11 @@
                     <div id="email-error" class="text-red-500"></div>
                 </div>
                 <div>
+                    <label for="mobile_number" class="block">Mobile Number:</label>
+                    <input type="tel" id="mobile_number" name="mobile_number" class="w-full" placeholder="e.g., 09123456789" required maxlength="11">
+                    <div id="mobile_number-error" class="text-red-500"></div>
+                </div>
+                <div>
                     <label for="password" class="block">Password:</label>
                     <div class="flex items-center">
                         <input type="password" id="password" name="password" class="w-full pr-16" required minlength="6" maxlength="20">
@@ -390,19 +395,20 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Your web app's Firebase configuration (provided by the user)
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyDuRG37e5qWu1kN7aZQVBwyQwj1EbIieHE",
-  authDomain: "wcsharearideinitiativeproject.firebaseapp.com",
-  projectId: "wcsharearideinitiativeproject",
-  storageBucket: "wcsharearideinitiativeproject.firebasestorage.app",
-  messagingSenderId: "169826993800",
-  appId: "1:169826993800:web:367bee8597df79406b813d",
-  measurementId: "G-7RJV9Q4NCT"
-};
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDuRG37e5qWu1kN7aZQVBwyQwj1EbIieHE",
+            authDomain: "wcsharearideinitiativeproject.firebaseapp.com",
+            projectId: "wcsharearideinitiativeproject",
+            storageBucket: "wcsharearideinitiativeproject.firebasestorage.app",
+            messagingSenderId: "169826993800",
+            appId: "1:169826993800:web:367bee8597df79406b813d",
+            measurementId: "G-7RJV9Q4NCT"
+        };
+
         // Firebase configuration and initialization
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Use __app_id for Firestore path
+        // Use a default app ID if __app_id is not defined in your environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -437,11 +443,10 @@ const firebaseConfig = {
         const messageBox = document.getElementById('message-box');
         const signupForm = document.getElementById('signup-form');
         const loginLink = document.getElementById('login-link');
-        const mobileNumberInput = document.getElementById('mobile_number');
+        const mobileNumberInput = document.getElementById('mobile_number'); // Now correctly referencing the new input
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password'); // Password input
         const togglePasswordButton = document.getElementById('toggle-password'); // Toggle text element
-        const facebookLinkInput = document.getElementById('facebook_link');
 
         // Get references to new checker elements
         const passwordLengthCheck = document.getElementById('password-length-check');
@@ -449,21 +454,26 @@ const firebaseConfig = {
         const passwordSymbolCheck = document.getElementById('password-symbol-check');
         const passwordNumberCheck = document.getElementById('password-number-check');
 
-
         // Function to display messages
         function showMessage(message, type = 'success') {
             messageBox.textContent = message;
             messageBox.className = `fixed top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-md shadow-md show ${type}`;
             setTimeout(() => {
                 messageBox.classList.remove('show');
+                messageBox.classList.remove(type); // Also remove the type class
+                messageBox.textContent = ''; // Clear text
             }, 3000);
         }
 
         // Function to display form validation errors
         function formErrorResponse(inputID, response) {
             const error = document.getElementById(inputID);
-            error.style.display = 'block';
-            error.textContent = response;
+            if (error) { // Ensure the error element exists
+                error.style.display = 'block';
+                error.textContent = response;
+            } else {
+                console.warn(`Error element with ID '${inputID}' not found.`);
+            }
         }
 
         // Function to update password strength indicators
@@ -542,15 +552,20 @@ const firebaseConfig = {
 
             let isValid = true; // Flag to track overall form validity
 
-            // Get references to input elements
+            // Get references to input elements (re-declare inside submit for freshness if needed, or ensure they're globally accessible)
             const firstNameInput = document.getElementById('first_name');
             const lastNameInput = document.getElementById('last_name');
             const genderInput = document.getElementById('gender');
             const cityInput = document.getElementById('city');
-            const selfieWithIdInput = document.getElementById('selfie_with_id');
+            const facebookLinkInput = document.getElementById('facebook_link');
+            const selfieWithIdInput = document.getElementById('selfie_with_id'); // File input
 
-            // Clear previous errors
-            document.querySelectorAll('.text-red-500').forEach(el => el.style.display = 'none');
+            // Clear previous errors for all fields
+            document.querySelectorAll('.text-red-500').forEach(el => {
+                el.style.display = 'none';
+                el.textContent = ''; // Clear existing error messages
+            });
+            showMessage('', 'clear'); // Clear any previous general messages
 
             // Validate First Name
             if (!firstNameInput.value.trim()) {
@@ -577,16 +592,27 @@ const firebaseConfig = {
             }
 
             // Validate Facebook Messenger Link
+            // Basic URL validation
+            const facebookLinkPattern = /^(https?:\/\/(www\.)?)?facebook\.com\/[a-zA-Z0-9\.]+(\/?)$/i;
             if (!facebookLinkInput.value.trim()) {
                 formErrorResponse('facebook_link-error', 'Facebook Link is required');
+                isValid = false;
+            } else if (!facebookLinkPattern.test(facebookLinkInput.value.trim())) {
+                formErrorResponse('facebook_link-error', 'Please enter a valid Facebook profile URL (e.g., facebook.com/yourprofile)');
                 isValid = false;
             }
 
             // Validate Email
-            if (!emailInput.value.trim()) {
+            const email = emailInput.value.trim();
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email) {
                 formErrorResponse('email-error', 'Email is required');
                 isValid = false;
+            } else if (!emailPattern.test(email)) {
+                formErrorResponse('email-error', 'Please enter a valid email address.');
+                isValid = false;
             }
+
 
             // Validate Password
             const password = passwordInput.value.trim();
@@ -612,16 +638,17 @@ const firebaseConfig = {
 
 
             // Validate Mobile Number
-            if (!mobileNumberInput.value.trim()) {
+            const mobileNumber = mobileNumberInput.value.trim();
+            if (!mobileNumber) {
                 formErrorResponse('mobile_number-error', 'Mobile Number is required');
                 isValid = false;
-            } else if (!/^\d{11}$/.test(mobileNumberInput.value)) {
-                formErrorResponse('mobile_number-error', 'Mobile Number must be 11 digits and contain only numbers');
+            } else if (!/^09\d{9}$/.test(mobileNumber)) { // Strictly 09 followed by 9 digits for a total of 11
+                formErrorResponse('mobile_number-error', 'Mobile Number must be 11 digits, start with 09, and contain only numbers');
                 isValid = false;
             }
 
             // Validate Selfie (client-side only, no actual upload)
-            if (!selfieWithIdInput.value) {
+            if (!selfieWithIdInput.files || selfieWithIdInput.files.length === 0) {
                 formErrorResponse('selfie_with_id-error', 'Selfie is required');
                 isValid = false;
             }
@@ -629,9 +656,7 @@ const firebaseConfig = {
             // If all client-side validations pass, proceed with Firebase
             if (isValid) {
                 try {
-                    const email = emailInput.value.trim();
-                    // const password is already defined above
-
+                    // Create user in Firebase Authentication
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                     const user = userCredential.user;
                     userId = user.uid; // Update userId with the newly created user's UID
@@ -644,26 +669,36 @@ const firebaseConfig = {
                         city: cityInput.value,
                         facebookLink: facebookLinkInput.value.trim(),
                         email: email,
-                        mobileNumber: mobileNumberInput.value.trim(),
-                        // selfieWithId: selfieWithIdInput.value ? 'Selfie provided (not uploaded)' : 'No selfie', // Placeholder
+                        mobileNumber: mobileNumber, // Use the validated mobile number
+                        // Selfie is not uploaded to Firestore directly from here.
+                        // You would typically use Firebase Storage for files.
+                        // For now, we'll just note its presence if a file was selected.
+                        selfieProvided: selfieWithIdInput.files.length > 0 ? true : false,
                         createdAt: new Date(),
                         userId: userId // Store the user's UID
                     };
 
                     // Save user data to Firestore
                     // Path: /artifacts/{appId}/users/{userId}/user_profiles/profile_data
+                    // The 'appId' variable should ideally come from your backend or a more secure client-side setup
+                    // For now, it's 'default-app-id' or whatever __app_id resolves to.
                     const userProfileDocRef = doc(db, `artifacts/${appId}/users/${userId}/user_profiles`, 'profile_data');
                     await setDoc(userProfileDocRef, userData);
 
                     showMessage('Sign Up successful! Your data has been saved.', 'success');
                     signupForm.reset(); // Clear the form
+                    // Reset password strength indicators to default state after successful signup
+                    updatePasswordStrength();
+
                 } catch (error) {
                     console.error("Error during sign up or saving to Firestore:", error);
                     let errorMessage = "An unknown error occurred during sign up.";
                     if (error.code === 'auth/email-already-in-use') {
                         errorMessage = 'The email address is already in use by another account.';
+                        formErrorResponse('email-error', errorMessage); // Show specific error under email
                     } else if (error.code === 'auth/weak-password') {
                         errorMessage = 'The password is too weak. Please use a stronger password.';
+                        formErrorResponse('password-error', errorMessage); // Show specific error under password
                     } else if (error.message) {
                         errorMessage = error.message;
                     }
@@ -676,23 +711,27 @@ const firebaseConfig = {
         loginLink.addEventListener('click', (event) => {
             event.preventDefault();
             showMessage('Redirecting to Login Page (Simulated)', 'info');
+            // In a real application, you would navigate to your login page:
+            // window.location.href = 'login.html';
         });
 
         // --- Mobile Number input: Force "09" and allow only numbers ---
         mobileNumberInput.addEventListener('input', (event) => {
             let value = event.target.value.replace(/\D/g, ''); // Remove non-numeric characters
             if (value.length > 0) {
-                // Ensure it starts with '09' if the user types anything
+                // Ensure it starts with '09' if the user types anything, or force it
                 if (!value.startsWith('09')) {
-                    value = '09' + value.slice(0, 9); // Take up to 9 digits after '09'
-                } else if (value.length > 11) {
-                    value = value.slice(0, 11); // Limit to 11 digits
+                    value = '09' + value;
+                }
+                // Limit to 11 characters
+                if (value.length > 11) {
+                    value = value.slice(0, 11);
                 }
             }
             event.target.value = value;
         });
 
-        // Prevent non-numeric characters on keypress for mobile number
+        // Prevent non-numeric characters on keypress for mobile number (redundant with 'input' but good for immediate feedback)
         mobileNumberInput.addEventListener('keypress', (event) => {
             const charCode = event.which ? event.which : event.keyCode;
             if (charCode < 48 || charCode > 57) { // Only allow digits (0-9)
