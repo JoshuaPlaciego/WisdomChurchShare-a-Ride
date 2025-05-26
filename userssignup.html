@@ -310,7 +310,7 @@
         <div id="message-box"></div>
 
         <header class="header-nav">
-            <h1>Wisdom Church Share-a-Ride Initiative</h1>
+            <h1>Church Share-a-Ride</h1>
             <nav>
                 <span id="userEmailDisplay" class="text-white text-lg mr-4" style="display:none;"></span>
                 <button id="logoutBtn" class="bg-red-600 hover:bg-red-700" style="display:none;">Logout</button>
@@ -389,11 +389,6 @@
                     <div id="mobile_number-error" class="text-red-500 text-sm mt-1" style="display:none;"></div>
                     <p class="text-gray-500 text-sm mt-1">Format: 09XXXXXXXXX (11 digits, numbers only)</p>
                 </div>
-                <div>
-                    <label for="selfie_with_id" class="block">Selfie (with ID):</label>
-                    <input type="file" id="selfie_with_id" name="selfie_with_id" accept="image/*" class="w-full" required>
-                    <div id="selfie_with_id-error" class="text-red-500 text-sm mt-1" style="display:none;"></div>
-                </div>
                 <button type="submit" class="w-full">Sign Up <span id="signup-spinner" class="loading-spinner"></span></button>
                 <div class="text-center mt-4">
                     <p>
@@ -466,8 +461,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
-
     <script>
         // Firebase Configuration - REPLACE WITH YOUR ACTUAL CONFIG
         // You get this from your Firebase Project Settings -> Your apps -> Web app
@@ -475,7 +468,7 @@
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_AUTH_DOMAIN",
             projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
+            storageBucket: "YOUR_STORAGE_BUCKET", // This can remain, it's just a config value. App won't use it.
             messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
             appId: "YOUR_APP_ID"
         };
@@ -484,11 +477,10 @@
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const storage = firebase.storage(); // Initialize Firebase Storage
+        // Removed Firebase Storage initialization: const storage = firebase.storage();
 
         // --- DOM Elements ---
         const messageBox = document.getElementById('message-box');
-        // Removed loginRegisterToggleBtn as per user request
         const logoutBtn = document.getElementById('logoutBtn');
         const authSection = document.getElementById('authSection');
         const appSection = document.getElementById('appSection');
@@ -505,7 +497,7 @@
         const signupEmailInput = document.getElementById('signup_email');
         const signupPasswordInput = document.getElementById('signup_password');
         const mobileNumberInput = document.getElementById('mobile_number');
-        const selfieWithIdInput = document.getElementById('selfie_with_id');
+        // Removed selfieWithIdInput: const selfieWithIdInput = document.getElementById('selfie_with_id');
         const signupSpinner = document.getElementById('signup-spinner');
 
         // Login Form Elements
@@ -596,14 +588,12 @@
             if (user) {
                 userEmailDisplay.textContent = user.email;
                 userEmailDisplay.style.display = 'inline-block';
-                // loginRegisterToggleBtn.style.display = 'none'; // Removed
                 logoutBtn.style.display = 'inline-block';
                 showSection('appSection');
                 loadMyTrips(user.uid); // Load user's trips
                 checkUserRole(user.uid); // Determine if user is a driver or rider
             } else {
                 userEmailDisplay.style.display = 'none';
-                // loginRegisterToggleBtn.style.display = 'inline-block'; // Removed
                 logoutBtn.style.display = 'none';
                 showSection('authSection');
                 // Ensure signup form is shown by default on logout
@@ -636,11 +626,6 @@
         }
 
         // --- Event Listeners for UI Toggles ---
-        // loginRegisterToggleBtn.addEventListener('click', () => { // Removed listener
-        //     showSection('authSection');
-        //     showSignupForm(); // Default to signup
-        // });
-
         logoutBtn.addEventListener('click', async () => {
             try {
                 await auth.signOut();
@@ -671,7 +656,7 @@
 
             let isValid = true;
 
-            // Client-side validation (from your original code)
+            // Client-side validation
             if (!firstNameInput.value.trim()) { formErrorResponse('first_name-error', 'First Name is required'); isValid = false; }
             if (!lastNameInput.value.trim()) { formErrorResponse('last_name-error', 'Last Name is required'); isValid = false; }
             if (!genderInput.value) { formErrorResponse('gender-error', 'Gender is required'); isValid = false; }
@@ -683,7 +668,7 @@
             else if (signupPasswordInput.value.trim().length < 6) { formErrorResponse('signup_password-error', 'Password must be at least 6 characters long'); isValid = false; }
             if (!mobileNumberInput.value.trim()) { formErrorResponse('mobile_number-error', 'Mobile Number is required'); isValid = false; }
             else if (!/^09\d{9}$/.test(mobileNumberInput.value)) { formErrorResponse('mobile_number-error', 'Mobile Number must be 11 digits starting with 09'); isValid = false; }
-            if (!selfieWithIdInput.files.length) { formErrorResponse('selfie_with_id-error', 'Selfie is required'); isValid = false; }
+            // Removed selfie validation: if (!selfieWithIdInput.files.length) { formErrorResponse('selfie_with_id-error', 'Selfie is required'); isValid = false; }
 
             if (!isValid) {
                 showMessage('Please correct the errors in the form.', 'error');
@@ -697,47 +682,24 @@
                 const userCredential = await auth.createUserWithEmailAndPassword(signupEmailInput.value, signupPasswordInput.value);
                 const user = userCredential.user;
 
-                // 2. Upload Selfie to Firebase Storage
-                const selfieFile = selfieWithIdInput.files[0];
-                const storageRef = storage.ref(`selfies/${user.uid}/${selfieFile.name}`);
-                const uploadTask = storageRef.put(selfieFile);
+                // Removed selfie upload logic entirely.
+                // 2. Store user profile data in Firestore
+                await db.collection('users').doc(user.uid).set({
+                    firstName: firstNameInput.value,
+                    lastName: lastNameInput.value,
+                    gender: genderInput.value,
+                    city: cityInput.value,
+                    facebookLink: facebookLinkInput.value,
+                    email: signupEmailInput.value,
+                    mobileNumber: mobileNumberInput.value,
+                    // Removed selfieUrl from here as well
+                    role: 'rider', // Default role for new users
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
 
-                uploadTask.on('state_changed',
-                    (snapshot) => {
-                        // Optional: Show upload progress
-                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                        console.log('Upload is ' + progress + '% done');
-                    },
-                    (error) => {
-                        console.error('Selfie upload failed:', error);
-                        showMessage('Selfie upload failed: ' + error.message, 'error');
-                        signupSpinner.style.display = 'none'; // Hide spinner
-                        // Consider deleting the user if selfie upload is critical and fails
-                        // auth.currentUser.delete(); // Use with caution!
-                    },
-                    async () => {
-                        // Upload complete, get download URL
-                        const selfieUrl = await storageRef.getDownloadURL();
-
-                        // 3. Store user profile data in Firestore
-                        await db.collection('users').doc(user.uid).set({
-                            firstName: firstNameInput.value,
-                            lastName: lastNameInput.value,
-                            gender: genderInput.value,
-                            city: cityInput.value,
-                            facebookLink: facebookLinkInput.value,
-                            email: signupEmailInput.value,
-                            mobileNumber: mobileNumberInput.value,
-                            selfieUrl: selfieUrl, // Store the URL
-                            role: 'rider', // Default role for new users
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-
-                        showMessage('Account created and signed in successfully!', 'success');
-                        signupForm.reset();
-                        signupSpinner.style.display = 'none'; // Hide spinner
-                    }
-                );
+                showMessage('Account created and signed in successfully!', 'success');
+                signupForm.reset();
+                signupSpinner.style.display = 'none'; // Hide spinner
 
             } catch (error) {
                 console.error('Sign Up error:', error);
