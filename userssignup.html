@@ -238,8 +238,20 @@
             <option value="san_juan">San Juan</option>
             <option value="taguig">Taguig</option>
             <option value="valenzuela">Valenzuela</option>
+            <option value="other">Other</option>
           </select>
           <div id="city-error" class="text-red-500"></div>
+        </div>
+
+        <div>
+          <label for="role">Role:</label>
+          <select id="role" name="role" required>
+            <option value="">Select Role</option>
+            <option value="driver">Driver</option>
+            <option value="rider">Rider</option>
+            <option value="both">Both</option>
+          </select>
+          <div id="role-error" class="text-red-500"></div>
         </div>
 
         <div>
@@ -248,114 +260,112 @@
             type="url"
             id="messenger_link"
             name="messenger_link"
-            placeholder="https://m.me/yourusername"
-            required
+            placeholder="https://m.me/username"
+            autocomplete="off"
           />
           <div id="messenger_link-error" class="text-red-500"></div>
         </div>
 
         <div>
-          <label for="email">Email Address:</label>
+          <label for="email">Email:</label>
           <input
             type="email"
             id="email"
             name="email"
-            placeholder="you@example.com"
             required
+            autocomplete="email"
           />
           <div id="email-error" class="text-red-500"></div>
         </div>
 
-        <div class="text-center">
-          <button type="submit">Sign Up</button>
-        </div>
+        <button type="submit" id="submit-btn">Register</button>
       </form>
     </section>
   </div>
 
   <script>
-    // Simple form validation and message box display
-    const form = document.getElementById("signup-form");
-    const messageBox = document.getElementById("message-box");
+    (() => {
+      const form = document.getElementById("signup-form");
+      const messageBox = document.getElementById("message-box");
 
-    function showMessage(message, isError = false) {
-      messageBox.textContent = message;
-      messageBox.className = isError ? "error show" : "show";
-      setTimeout(() => {
-        messageBox.classList.remove("show");
-      }, 4000);
-    }
-
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-
-      // Clear previous errors
-      ["first_name", "last_name", "gender", "city", "messenger_link", "email"].forEach(
-        (id) => {
-          document.getElementById(id + "-error").textContent = "";
-        }
-      );
-
-      let valid = true;
-
-      // Validate required fields
-      if (!form.first_name.value.trim()) {
-        document.getElementById("first_name-error").textContent =
-          "First name is required.";
-        valid = false;
+      function showMessage(message, isError = false) {
+        messageBox.textContent = message;
+        messageBox.className = isError ? "show error" : "show";
+        setTimeout(() => {
+          messageBox.className = "";
+        }, 4000);
       }
 
-      if (!form.last_name.value.trim()) {
-        document.getElementById("last_name-error").textContent =
-          "Last name is required.";
-        valid = false;
-      }
-
-      if (!form.gender.value) {
-        document.getElementById("gender-error").textContent = "Please select gender.";
-        valid = false;
-      }
-
-      if (!form.city.value) {
-        document.getElementById("city-error").textContent = "Please select city.";
-        valid = false;
-      }
-
-      if (!form.messenger_link.value.trim()) {
-        document.getElementById("messenger_link-error").textContent =
-          "Messenger link is required.";
-        valid = false;
-      } else {
+      function validateUrl(value) {
+        if (!value) return true; // optional field
         try {
-          new URL(form.messenger_link.value);
+          const url = new URL(value);
+          return url.protocol === "https:" || url.protocol === "http:";
         } catch {
-          document.getElementById("messenger_link-error").textContent =
-            "Please enter a valid URL.";
-          valid = false;
+          return false;
         }
       }
 
-      if (!form.email.value.trim()) {
-        document.getElementById("email-error").textContent = "Email is required.";
-        valid = false;
-      } else {
-        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailPattern.test(form.email.value)) {
-          document.getElementById("email-error").textContent =
-            "Please enter a valid email address.";
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        let valid = true;
+
+        // Clear previous errors
+        ["first_name", "last_name", "gender", "city", "role", "messenger_link", "email"].forEach((id) => {
+          document.getElementById(id + "-error").textContent = "";
+        });
+
+        // Validate required fields
+        const firstName = form.first_name.value.trim();
+        const lastName = form.last_name.value.trim();
+        const gender = form.gender.value;
+        const city = form.city.value;
+        const role = form.role.value;
+        const messengerLink = form.messenger_link.value.trim();
+        const email = form.email.value.trim();
+
+        if (!firstName) {
+          document.getElementById("first_name-error").textContent = "First name is required.";
           valid = false;
         }
-      }
+        if (!lastName) {
+          document.getElementById("last_name-error").textContent = "Last name is required.";
+          valid = false;
+        }
+        if (!gender) {
+          document.getElementById("gender-error").textContent = "Gender is required.";
+          valid = false;
+        }
+        if (!city) {
+          document.getElementById("city-error").textContent = "City is required.";
+          valid = false;
+        }
+        if (!role) {
+          document.getElementById("role-error").textContent = "Role is required.";
+          valid = false;
+        }
+        if (messengerLink && !validateUrl(messengerLink)) {
+          document.getElementById("messenger_link-error").textContent = "Please enter a valid URL.";
+          valid = false;
+        }
+        if (!email) {
+          document.getElementById("email-error").textContent = "Email is required.";
+          valid = false;
+        } else if (!/\S+@\S+\.\S+/.test(email)) {
+          document.getElementById("email-error").textContent = "Email is invalid.";
+          valid = false;
+        }
 
-      if (!valid) {
-        showMessage("Please correct errors and try again.", true);
-        return;
-      }
+        if (!valid) {
+          showMessage("Please fix errors before submitting.", true);
+          return;
+        }
 
-      // If valid, you can add your form submission logic here (e.g., AJAX, fetch, etc.)
-      showMessage("Sign up successful!");
-      form.reset();
-    });
+        // Form is valid, proceed with submission logic here
+        showMessage("Registration successful!");
+        form.reset();
+      });
+    })();
   </script>
 </body>
 </html>
