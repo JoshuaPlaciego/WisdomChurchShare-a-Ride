@@ -34,6 +34,11 @@
             color: #dc2626;
             border-color: #dc2626;
         }
+        #message-box.info {
+            background-color: #e0f2fe;
+            color: #0284c7;
+            border-color: #0ea5e9;
+        }
 
         /* General Form Styles */
         .form-container {
@@ -349,10 +354,19 @@
                     <div id="email-error" class="text-red-500"></div>
                 </div>
                 <div>
-                    <label for="mobile_number" class="block">Mobile Number:</label>
-                    <input type="tel" id="mobile_number" name="mobile_number" class="w-full" placeholder="09XXXXXXXXX" required>
-                    <div id="mobile_number-error" class="text-red-500"></div>
-                    <p class="text-gray-500 text-sm mt-1">Format: 09XXXXXXXXX (11 digits, numbers only)</p>
+                    <label for="password" class="block">Password:</label>
+                    <div class="flex items-center">
+                        <input type="password" id="password" name="password" class="w-full pr-16" required minlength="6" maxlength="20">
+                        <span id="toggle-password" class="text-blue-500 hover:underline cursor-pointer -ml-16 whitespace-nowrap">Show</span>
+                    </div>
+                    <div id="password-error" class="text-red-500"></div>
+                    <p class="text-gray-500 text-sm mt-1">Password must meet the following criteria:</p>
+                    <ul class="text-gray-600 text-xs ml-4 mt-1 list-disc">
+                        <li id="password-length-check">Between 6 and 20 characters</li>
+                        <li id="password-capital-check">Include at least one uppercase letter</li>
+                        <li id="password-symbol-check">Include at least one special character (e.g., !@#$)</li>
+                        <li id="password-number-check">Include at least one numeric digit</li>
+                    </ul>
                 </div>
                 <div>
                     <label for="selfie_with_id" class="block">Selfie:</label>
@@ -370,24 +384,76 @@
         </section>
     </div>
 
-    <script>
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Your web app's Firebase configuration (provided by the user)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDuRG37e5qWu1kN7aZQVBwyQwj1EbIieHE",
+            authDomain: "wcsharearideinitiativeproject.firebaseapp.com",
+            projectId: "wcsharearideinitiativeproject",
+            storageBucket: "wcsharearideinitiativeproject.firebasestorage.app",
+            messagingSenderId: "169826993800",
+            appId: "1:169826993800:web:367bee8597df79406b813d",
+            measurementId: "G-7RJV9Q4NCT"
+        };
+
+        // Firebase configuration and initialization
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Use __app_id for Firestore path
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let userId = null; // Variable to store the current user ID
+
+        // Function to authenticate with Firebase
+        async function authenticateFirebase() {
+            try {
+                // Sign in with custom token if available, otherwise anonymously
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                    console.log("Signed in with custom token.");
+                } else {
+                    await signInAnonymously(auth);
+                    console.log("Signed in anonymously.");
+                }
+                userId = auth.currentUser?.uid || crypto.randomUUID(); // Get UID or generate random for anonymous
+                console.log("Current User ID:", userId);
+            } catch (error) {
+                console.error("Firebase authentication error:", error);
+                showMessage(`Authentication failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Call authentication on window load
+        window.onload = () => {
+            authenticateFirebase();
+            updatePasswordStrength(); // Initial check for password strength on load
+        };
+
         const messageBox = document.getElementById('message-box');
         const signupForm = document.getElementById('signup-form');
         const loginLink = document.getElementById('login-link');
         const mobileNumberInput = document.getElementById('mobile_number');
         const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password'); // Password input
+        const togglePasswordButton = document.getElementById('toggle-password'); // Toggle text element
         const facebookLinkInput = document.getElementById('facebook_link');
+
+        // Get references to new checker elements
+        const passwordLengthCheck = document.getElementById('password-length-check');
+        const passwordCapitalCheck = document.getElementById('password-capital-check');
+        const passwordSymbolCheck = document.getElementById('password-symbol-check');
+        const passwordNumberCheck = document.getElementById('password-number-check');
+
 
         // Function to display messages
         function showMessage(message, type = 'success') {
             messageBox.textContent = message;
-            messageBox.className = `fixed top-4 left-1/2 transform -translate-x-1/2 bg-${
-                type === 'success' ? 'green' : 'red'
-            }-100 text-${
-                type === 'success' ? 'green' : 'red'
-            }-700 border border-${
-                type === 'success' ? 'green' : 'red'
-            }-400 px-4 py-2 rounded-md shadow-md show`;
+            messageBox.className = `fixed top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-md shadow-md show ${type}`;
             setTimeout(() => {
                 messageBox.classList.remove('show');
             }, 3000);
@@ -400,8 +466,78 @@
             error.textContent = response;
         }
 
+        // Function to update password strength indicators
+        function updatePasswordStrength() {
+            const password = passwordInput.value;
+
+            // Length check
+            if (password.length >= 6 && password.length <= 20) {
+                passwordLengthCheck.classList.remove('text-red-500');
+                passwordLengthCheck.classList.add('text-green-600');
+            } else {
+                passwordLengthCheck.classList.remove('text-green-600');
+                passwordLengthCheck.classList.add('text-red-500');
+            }
+
+            // Capital letter check
+            if (/[A-Z]/.test(password)) {
+                passwordCapitalCheck.classList.remove('text-red-500');
+                passwordCapitalCheck.classList.add('text-green-600');
+            } else {
+                passwordCapitalCheck.classList.remove('text-green-600');
+                passwordCapitalCheck.classList.add('text-red-500');
+            }
+
+            // Symbol check
+            // Using a broader regex for common symbols
+            if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+                passwordSymbolCheck.classList.remove('text-red-500');
+                passwordSymbolCheck.classList.add('text-green-600');
+            } else {
+                passwordSymbolCheck.classList.remove('text-green-600');
+                passwordSymbolCheck.classList.add('text-red-500');
+            }
+
+            // Number check
+            if (/\d/.test(password)) {
+                passwordNumberCheck.classList.remove('text-red-500');
+                passwordNumberCheck.classList.add('text-green-600');
+            } else {
+                passwordNumberCheck.classList.remove('text-green-600');
+                passwordNumberCheck.classList.add('text-red-500');
+            }
+        }
+
+        // --- Toggle Password Visibility (on hold/release) ---
+        togglePasswordButton.addEventListener('mousedown', () => {
+            passwordInput.setAttribute('type', 'text');
+            togglePasswordButton.textContent = 'Hide';
+        });
+
+        togglePasswordButton.addEventListener('mouseup', () => {
+            passwordInput.setAttribute('type', 'password');
+            togglePasswordButton.textContent = 'Show';
+        });
+
+        // For touch devices
+        togglePasswordButton.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling/zooming
+            passwordInput.setAttribute('type', 'text');
+            togglePasswordButton.textContent = 'Hide';
+        });
+
+        togglePasswordButton.addEventListener('touchend', (e) => {
+            e.preventDefault(); // Prevent default touch behavior
+            passwordInput.setAttribute('type', 'password');
+            togglePasswordButton.textContent = 'Show';
+        });
+
+        // Add event listener to password input for real-time validation feedback
+        passwordInput.addEventListener('input', updatePasswordStrength);
+
+
         // --- Sign Up Form Submission and Validation ---
-        signupForm.addEventListener('submit', (event) => {
+        signupForm.addEventListener('submit', async (event) => {
             event.preventDefault(); // Prevent default form submission
 
             let isValid = true; // Flag to track overall form validity
@@ -413,53 +549,67 @@
             const cityInput = document.getElementById('city');
             const selfieWithIdInput = document.getElementById('selfie_with_id');
 
+            // Clear previous errors
+            document.querySelectorAll('.text-red-500').forEach(el => el.style.display = 'none');
+
             // Validate First Name
             if (!firstNameInput.value.trim()) {
                 formErrorResponse('first_name-error', 'First Name is required');
                 isValid = false;
-            } else {
-                document.getElementById('first_name-error').style.display = 'none';
             }
 
             // Validate Last Name
             if (!lastNameInput.value.trim()) {
                 formErrorResponse('last_name-error', 'Last Name is required');
                 isValid = false;
-            } else {
-                document.getElementById('last_name-error').style.display = 'none';
             }
 
             // Validate Gender
             if (!genderInput.value) {
                 formErrorResponse('gender-error', 'Gender is required');
                 isValid = false;
-            } else {
-                document.getElementById('gender-error').style.display = 'none';
             }
 
             // Validate City
             if (!cityInput.value) {
                 formErrorResponse('city-error', 'City is required');
                 isValid = false;
-            } else {
-                document.getElementById('city-error').style.display = 'none';
             }
 
             // Validate Facebook Messenger Link
             if (!facebookLinkInput.value.trim()) {
                 formErrorResponse('facebook_link-error', 'Facebook Link is required');
                 isValid = false;
-            } else {
-                document.getElementById('facebook_link-error').style.display = 'none';
             }
 
             // Validate Email
             if (!emailInput.value.trim()) {
                 formErrorResponse('email-error', 'Email is required');
                 isValid = false;
-            } else {
-                document.getElementById('email-error').style.display = 'none';
             }
+
+            // Validate Password
+            const password = passwordInput.value.trim();
+            if (!password) {
+                formErrorResponse('password-error', 'Password is required');
+                isValid = false;
+            } else if (password.length < 6) {
+                formErrorResponse('password-error', 'Password must be at least 6 characters long.');
+                isValid = false;
+            } else if (password.length > 20) {
+                formErrorResponse('password-error', 'Password must be maximum 20 characters long.');
+                isValid = false;
+            } else if (!/[A-Z]/.test(password)) {
+                formErrorResponse('password-error', 'Password must contain at least one uppercase letter.');
+                isValid = false;
+            } else if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) { // Regex for common symbols
+                formErrorResponse('password-error', 'Password must contain at least one special character (e.g., !@#$).');
+                isValid = false;
+            } else if (!/\d/.test(password)) {
+                formErrorResponse('password-error', 'Password must contain at least one numeric digit.');
+                isValid = false;
+            }
+
 
             // Validate Mobile Number
             if (!mobileNumberInput.value.trim()) {
@@ -468,31 +618,63 @@
             } else if (!/^\d{11}$/.test(mobileNumberInput.value)) {
                 formErrorResponse('mobile_number-error', 'Mobile Number must be 11 digits and contain only numbers');
                 isValid = false;
-            } else {
-                document.getElementById('mobile_number-error').style.display = 'none';
             }
 
-            // Validate Selfie
+            // Validate Selfie (client-side only, no actual upload)
             if (!selfieWithIdInput.value) {
                 formErrorResponse('selfie_with_id-error', 'Selfie is required');
                 isValid = false;
-            } else {
-                document.getElementById('selfie_with_id-error').style.display = 'none';
             }
 
-            // If all validations pass, simulate success
+            // If all client-side validations pass, proceed with Firebase
             if (isValid) {
-                showMessage('Sign Up successful!', 'success');
-                signupForm.reset(); // Clear the form
-                // In a real application, you would send data to a server here.
+                try {
+                    const email = emailInput.value.trim();
+                    // const password is already defined above
+
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    const user = userCredential.user;
+                    userId = user.uid; // Update userId with the newly created user's UID
+
+                    // Prepare user data for Firestore
+                    const userData = {
+                        firstName: firstNameInput.value.trim(),
+                        lastName: lastNameInput.value.trim(),
+                        gender: genderInput.value,
+                        city: cityInput.value,
+                        facebookLink: facebookLinkInput.value.trim(),
+                        email: email,
+                        mobileNumber: mobileNumberInput.value.trim(),
+                        // selfieWithId: selfieWithIdInput.value ? 'Selfie provided (not uploaded)' : 'No selfie', // Placeholder
+                        createdAt: new Date(),
+                        userId: userId // Store the user's UID
+                    };
+
+                    // Save user data to Firestore
+                    // Path: /artifacts/{appId}/users/{userId}/user_profiles/profile_data
+                    const userProfileDocRef = doc(db, `artifacts/${appId}/users/${userId}/user_profiles`, 'profile_data');
+                    await setDoc(userProfileDocRef, userData);
+
+                    showMessage('Sign Up successful! Your data has been saved.', 'success');
+                    signupForm.reset(); // Clear the form
+                } catch (error) {
+                    console.error("Error during sign up or saving to Firestore:", error);
+                    let errorMessage = "An unknown error occurred during sign up.";
+                    if (error.code === 'auth/email-already-in-use') {
+                        errorMessage = 'The email address is already in use by another account.';
+                    } else if (error.code === 'auth/weak-password') {
+                        errorMessage = 'The password is too weak. Please use a stronger password.';
+                    } else if (error.message) {
+                        errorMessage = error.message;
+                    }
+                    showMessage(`Sign Up failed: ${errorMessage}`, 'error');
+                }
             }
         });
 
         // --- Switch to Login Page (Simulated) ---
         loginLink.addEventListener('click', (event) => {
             event.preventDefault();
-            // In a real application, you would redirect to the login page
-            // Using a custom message box instead of alert()
             showMessage('Redirecting to Login Page (Simulated)', 'info');
         });
 
@@ -500,8 +682,10 @@
         mobileNumberInput.addEventListener('input', (event) => {
             let value = event.target.value.replace(/\D/g, ''); // Remove non-numeric characters
             if (value.length > 0) {
-                value = '09' + value.slice(2); // Force "09" prefix, allowing user to type after
-                if (value.length > 11) {
+                // Ensure it starts with '09' if the user types anything
+                if (!value.startsWith('09')) {
+                    value = '09' + value.slice(0, 9); // Take up to 9 digits after '09'
+                } else if (value.length > 11) {
                     value = value.slice(0, 11); // Limit to 11 digits
                 }
             }
