@@ -3,309 +3,358 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sign Up and Email Verification</title>
+  <title>User Sign Up</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <script src="https://unpkg.com/@tailwindcss/browser@latest"></script>
   <style>
-    /* Your CSS styles exactly as you provided */
-    .form-container {
-      background-color: #fcfcfc;
-      border-radius: 10px;
-      width: 320px;
-      padding: 25px 30px;
-      box-sizing: border-box;
-      border: 1px solid lightgray;
-      box-shadow: 1px 2px 10px #9ca1a51c;
-      font-family: Arial, Helvetica, sans-serif;
-      margin: auto;
-      margin-top: 30px;
-    }
-    .form-title-panel {
-      font-weight: 600;
-      font-size: 1.5rem;
-      color: #48595f;
-      border-bottom: 2px solid #8080805c;
-      padding-bottom: 10px;
-      margin-bottom: 10px;
-    }
-    label {
-      display: block;
-      font-weight: 500;
-      margin-top: 8px;
-      font-size: 0.9rem;
-      color: #48595f;
-    }
-    input {
-      width: 100%;
-      height: 28px;
-      border-radius: 5px;
-      border: 1px solid lightgray;
-      margin-top: 4px;
-      padding-left: 10px;
-      font-size: 1rem;
-      font-weight: 400;
-      color: #545454;
-      box-sizing: border-box;
-    }
-    input[type=checkbox] {
-      width: 15px;
-      height: 15px;
-      margin-top: 9px;
-      margin-left: 0;
-      vertical-align: middle;
-    }
-    .input-error {
-      color: darkred;
-      font-size: 0.8rem;
-      margin-top: 1px;
-      height: 16px;
-    }
-    button {
-      border: none;
-      background-color: #306efb;
-      font-weight: 600;
-      padding: 10px;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 10px;
-      width: 100%;
-      font-size: 1.1rem;
-    }
-    button:hover {
-      background-color: #1e49d2;
-    }
-    .message-box {
-      border-radius: 7px;
-      font-weight: 600;
-      padding: 10px 15px;
-      font-size: 1rem;
-      margin-bottom: 15px;
-      border: 1px solid transparent;
+    /* Your provided styles here - copied exactly */
+    /* Refined Message Box */
+    #message-box {
       display: none;
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #f0fdf4;
+      color: #15803d;
+      padding: 1rem;
+      border-radius: 0.75rem;
+      border: 1px solid #16a34a;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
     }
-    .message-box.show {
+    #message-box.show {
       display: block;
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
-    .message-box.success {
-      border-color: #3b7f51;
-      background-color: #8ccf7a;
-      color: #204411;
+    #message-box.error {
+      background-color: #fee2e2;
+      color: #dc2626;
+      border-color: #dc2626;
     }
-    .message-box.error {
-      border-color: #a43737;
-      background-color: #f18a8a;
-      color: #500202;
+
+    /* General Form Styles */
+    .form-container {
+      background-color: #f7fafc;
+      border-radius: 1rem;
+      padding: 2.5rem;
+      box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.15),
+        0 6px 12px -4px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e2e8f0;
+      transition: box-shadow 0.3s ease, border-color 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 2rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .form-container:hover,
+    .form-container:focus-within {
+      box-shadow: 0 0 20px rgba(125, 211, 252, 0.4);
+      border-color: #7dd3fc;
+    }
+
+    .form-title-panel {
+      background-image: linear-gradient(to right, #4a5568, #2d3748);
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem 0.75rem 0 0;
+      margin-bottom: 2rem;
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 600;
+      text-align: center;
+      user-select: none;
+    }
+
+    .form-container div {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-container label {
+      font-weight: 500;
+      color: #4a5568;
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      transition: color 0.3s ease;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .form-container label:hover {
+      color: #2d3748;
+    }
+
+    .form-container input,
+    .form-container textarea,
+    .form-container select {
+      border-radius: 0.75rem;
+      padding: 0.8rem;
+      border: 1px solid #cbd5e0;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease,
+        background-color 0.3s ease;
+      width: 100%;
+      font-size: 1rem;
+      line-height: 1.5;
+      background-color: white;
+      cursor: text;
+    }
+
+    .form-container input:focus,
+    .form-container textarea:focus,
+    .form-container select:focus {
+      outline: none;
+      border-color: #3182ce;
+      box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.15);
+      background-color: #f7fafc;
+    }
+
+    .form-container input:hover,
+    .form-container textarea:hover,
+    .form-container select:hover {
+      background-color: #f7fafc;
+      border-color: #90caf9;
+    }
+
+    .form-container textarea {
+      min-height: 100px;
+      resize: vertical;
+      cursor: text;
+    }
+
+    .form-container button {
+      border-radius: 0.75rem;
+      padding: 1rem 2rem;
+      font-size: 1.25rem;
+      font-weight: 600;
+      transition: background-color 0.3s ease, transform 0.2s ease,
+        box-shadow 0 4px 8px -1px rgba(0, 0, 0, 0.2);
+      background-image: linear-gradient(to right, #4a5568, #2d3748);
+      color: white;
+      border: none;
+      box-shadow: 0 4px 8px -1px rgba(0, 0, 0, 0.2);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: auto;
+      min-width: 150px;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .form-container button:hover {
+      background-image: linear-gradient(to right, #374151, #1a202c);
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.3);
+    }
+
+    .form-container button:active {
+      transform: translateY(0) scale(1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .form-container .text-red-500 {
+      color: #e53e3e;
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+      display: block;
     }
   </style>
 </head>
-<body>
-  <div class="form-container" id="signup-section">
-    <div class="form-title-panel">Sign Up</div>
-    <div class="message-box" id="signup-message"></div>
+<body class="bg-gray-100 font-inter">
+  <div class="container mx-auto p-6">
+    <div id="message-box"></div>
 
-    <form id="signup-form" autocomplete="off" novalidate>
-      <label for="firstName">First Name *</label>
-      <input type="text" id="firstName" name="firstName" />
-      <div class="input-error" id="firstName-error"></div>
+    <section class="form-container">
+      <div class="form-title-panel">
+        <h2>Sign Up</h2>
+      </div>
 
-      <label for="lastName">Last Name *</label>
-      <input type="text" id="lastName" name="lastName" />
-      <div class="input-error" id="lastName-error"></div>
+      <form id="signup-form" class="space-y-6" novalidate>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="first_name">First Name:</label>
+            <input
+              type="text"
+              id="first_name"
+              name="first_name"
+              required
+              autocomplete="given-name"
+            />
+            <div id="first_name-error" class="text-red-500"></div>
+          </div>
+          <div>
+            <label for="last_name">Last Name:</label>
+            <input
+              type="text"
+              id="last_name"
+              name="last_name"
+              required
+              autocomplete="family-name"
+            />
+            <div id="last_name-error" class="text-red-500"></div>
+          </div>
+        </div>
 
-      <label for="gender">Gender *</label>
-      <input type="text" id="gender" name="gender" />
-      <div class="input-error" id="gender-error"></div>
+        <div>
+          <label for="gender">Gender:</label>
+          <select id="gender" name="gender" required>
+            <option value="">Select Gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+          <div id="gender-error" class="text-red-500"></div>
+        </div>
 
-      <label for="mobile">Mobile *</label>
-      <input type="text" id="mobile" name="mobile" />
-      <div class="input-error" id="mobile-error"></div>
+        <div>
+          <label for="city">City of Residence:</label>
+          <select id="city" name="city" required>
+            <option value="">Select City</option>
+            <option value="manila">Manila</option>
+            <option value="quezon_city">Quezon City</option>
+            <option value="caloocan">Caloocan</option>
+            <option value="las_pinas">Las Piñas</option>
+            <option value="makati">Makati</option>
+            <option value="malabon">Malabon</option>
+            <option value="mandaluyong">Mandaluyong</option>
+            <option value="marikina">Marikina</option>
+            <option value="muntinlupa">Muntinlupa</option>
+            <option value="paranaque">Parañaque</option>
+            <option value="pasay">Pasay</option>
+            <option value="pasig">Pasig</option>
+            <option value="san_juan">San Juan</option>
+            <option value="taguig">Taguig</option>
+            <option value="valenzuela">Valenzuela</option>
+          </select>
+          <div id="city-error" class="text-red-500"></div>
+        </div>
 
-      <label for="city">City *</label>
-      <input type="text" id="city" name="city" />
-      <div class="input-error" id="city-error"></div>
+        <div>
+          <label for="messenger_link">Facebook Messenger Link:</label>
+          <input
+            type="url"
+            id="messenger_link"
+            name="messenger_link"
+            placeholder="https://m.me/yourusername"
+            required
+          />
+          <div id="messenger_link-error" class="text-red-500"></div>
+        </div>
 
-      <label for="role">Role *</label>
-      <input type="text" id="role" name="role" />
-      <div class="input-error" id="role-error"></div>
+        <div>
+          <label for="email">Email Address:</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="you@example.com"
+            required
+          />
+          <div id="email-error" class="text-red-500"></div>
+        </div>
 
-      <label for="messengerLink">Messenger Link *</label>
-      <input type="url" id="messengerLink" name="messengerLink" />
-      <div class="input-error" id="messengerLink-error"></div>
-
-      <label for="email">Email *</label>
-      <input type="email" id="email" name="email" />
-      <div class="input-error" id="email-error"></div>
-
-      <label for="password">Password *</label>
-      <input type="password" id="password" name="password" />
-      <div class="input-error" id="password-error"></div>
-
-      <button type="submit">Sign Up</button>
-    </form>
+        <div class="text-center">
+          <button type="submit">Sign Up</button>
+        </div>
+      </form>
+    </section>
   </div>
-
-  <div class="form-container" id="verification-section" style="display:none;">
-    <div class="form-title-panel">Email Verification</div>
-    <div class="message-box" id="verify-message"></div>
-    <form id="verification-form" autocomplete="off" novalidate>
-      <label for="verificationCode">Verification Code *</label>
-      <input type="text" id="verificationCode" name="verificationCode" />
-      <div class="input-error" id="verificationCode-error"></div>
-
-      <button type="submit">Verify Email</button>
-      <button type="button" id="resend-code" style="margin-top: 5px; background-color: #808080;">Resend Code</button>
-    </form>
-  </div>
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 
   <script>
-    // Your Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyDuRG37e5qWu1kN7aZQVBwyQwj1EbIieHE",
-      authDomain: "wcsharearideinitiativeproject.firebaseapp.com",
-      projectId: "wcsharearideinitiativeproject",
-      storageBucket: "wcsharearideinitiativeproject.firebasestorage.app",
-      messagingSenderId: "169826993800",
-      appId: "1:169826993800:web:367bee8597df79406b813d",
-      measurementId: "G-7RJV9Q4NCT"
-    };
+    // Simple form validation and message box display
+    const form = document.getElementById("signup-form");
+    const messageBox = document.getElementById("message-box");
 
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-
-    const auth = firebase.auth();
-
-    // Elements
-    const signupSection = document.getElementById('signup-section');
-    const verificationSection = document.getElementById('verification-section');
-
-    const signupForm = document.getElementById('signup-form');
-    const verificationForm = document.getElementById('verification-form');
-
-    const signupMessageBox = document.getElementById('signup-message');
-    const verifyMessageBox = document.getElementById('verify-message');
-
-    // Simple validation function
-    function validateField(input) {
-      const value = input.value.trim();
-      let error = '';
-      if (!value) {
-        error = 'This field is required';
-      } else {
-        if (input.id === 'email') {
-          const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailPattern.test(value)) error = 'Invalid email address';
-        }
-        if (input.id === 'password') {
-          if (value.length < 6) error = 'Password must be at least 6 characters';
-        }
-      }
-      document.getElementById(input.id + '-error').textContent = error;
-      return !error;
+    function showMessage(message, isError = false) {
+      messageBox.textContent = message;
+      messageBox.className = isError ? "error show" : "show";
+      setTimeout(() => {
+        messageBox.classList.remove("show");
+      }, 4000);
     }
 
-    // Validate all fields in the signup form
-    function validateSignupForm() {
-      const inputs = signupForm.querySelectorAll('input');
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      // Clear previous errors
+      ["first_name", "last_name", "gender", "city", "messenger_link", "email"].forEach(
+        (id) => {
+          document.getElementById(id + "-error").textContent = "";
+        }
+      );
+
       let valid = true;
-      inputs.forEach(input => {
-        if (!validateField(input)) valid = false;
-      });
-      return valid;
-    }
 
-    signupForm.addEventListener('submit', async e => {
-      e.preventDefault();
-      signupMessageBox.className = 'message-box';
-      signupMessageBox.textContent = '';
-
-      if (!validateSignupForm()) {
-        signupMessageBox.classList.add('error', 'show');
-        signupMessageBox.textContent = 'Please fix the errors in the form.';
-        return;
+      // Validate required fields
+      if (!form.first_name.value.trim()) {
+        document.getElementById("first_name-error").textContent =
+          "First name is required.";
+        valid = false;
       }
 
-      const email = signupForm.email.value.trim();
-      const password = signupForm.password.value;
-
-      try {
-        // Create user in Firebase Auth
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        const user = userCredential.user;
-
-        // Update user profile with display name (first + last name)
-        await user.updateProfile({
-          displayName: signupForm.firstName.value.trim() + ' ' + signupForm.lastName.value.trim(),
-        });
-
-        // Send email verification
-        await user.sendEmailVerification();
-
-        signupMessageBox.classList.remove('error');
-        signupMessageBox.classList.add('success', 'show');
-        signupMessageBox.textContent = 'Sign up successful! Verification email sent. Please check your inbox.';
-
-        // Hide signup, show verification form
-        signupSection.style.display = 'none';
-        verificationSection.style.display = 'block';
-      } catch (error) {
-        signupMessageBox.classList.add('error', 'show');
-        signupMessageBox.textContent = error.message;
-      }
-    });
-
-    verificationForm.addEventListener('submit', async e => {
-      e.preventDefault();
-      verifyMessageBox.className = 'message-box';
-      verifyMessageBox.textContent = '';
-
-      const user = auth.currentUser;
-      if (!user) {
-        verifyMessageBox.classList.add('error', 'show');
-        verifyMessageBox.textContent = 'No user logged in. Please sign up again.';
-        return;
+      if (!form.last_name.value.trim()) {
+        document.getElementById("last_name-error").textContent =
+          "Last name is required.";
+        valid = false;
       }
 
-      await user.reload(); // Refresh user info
+      if (!form.gender.value) {
+        document.getElementById("gender-error").textContent = "Please select gender.";
+        valid = false;
+      }
 
-      if (user.emailVerified) {
-        verifyMessageBox.classList.add('success', 'show');
-        verifyMessageBox.textContent = 'Email successfully verified! You can now log in.';
-        // Reset forms or redirect user here
-        verificationForm.reset();
+      if (!form.city.value) {
+        document.getElementById("city-error").textContent = "Please select city.";
+        valid = false;
+      }
+
+      if (!form.messenger_link.value.trim()) {
+        document.getElementById("messenger_link-error").textContent =
+          "Messenger link is required.";
+        valid = false;
       } else {
-        verifyMessageBox.classList.add('error', 'show');
-        verifyMessageBox.textContent = 'Email not verified yet. Please check your inbox.';
+        try {
+          new URL(form.messenger_link.value);
+        } catch {
+          document.getElementById("messenger_link-error").textContent =
+            "Please enter a valid URL.";
+          valid = false;
+        }
       }
-    });
 
-    document.getElementById('resend-code').addEventListener('click', async () => {
-      verifyMessageBox.className = 'message-box';
-      verifyMessageBox.textContent = '';
-      const user = auth.currentUser;
-      if (!user) {
-        verifyMessageBox.classList.add('error', 'show');
-        verifyMessageBox.textContent = 'No user logged in. Please sign up again.';
+      if (!form.email.value.trim()) {
+        document.getElementById("email-error").textContent = "Email is required.";
+        valid = false;
+      } else {
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(form.email.value)) {
+          document.getElementById("email-error").textContent =
+            "Please enter a valid email address.";
+          valid = false;
+        }
+      }
+
+      if (!valid) {
+        showMessage("Please correct errors and try again.", true);
         return;
       }
-      try {
-        await user.sendEmailVerification();
-        verifyMessageBox.classList.add('success', 'show');
-        verifyMessageBox.textContent = 'Verification email resent. Please check your inbox.';
-      } catch (error) {
-        verifyMessageBox.classList.add('error', 'show');
-        verifyMessageBox.textContent = error.message;
-      }
-    });
 
-    // Add blur validation listeners
-    ['firstName', 'lastName', 'gender', 'mobile', 'city', 'role', 'messengerLink', 'email', 'password', 'verificationCode'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.addEventListener('blur', () => validateField(el));
-      }
+      // If valid, you can add your form submission logic here (e.g., AJAX, fetch, etc.)
+      showMessage("Sign up successful!");
+      form.reset();
     });
   </script>
 </body>
