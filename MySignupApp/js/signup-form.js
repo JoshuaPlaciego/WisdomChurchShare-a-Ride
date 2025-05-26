@@ -1,7 +1,7 @@
 // js/signup-form.js
 
 // Import Firebase instances and authentication function from firebase-init.js
-import { auth, db, appId, authenticateFirebase, getUserId } from './firebase-init.js';
+import { auth, db, appId, getUserId } from './firebase-init.js'; // Removed authenticateFirebase from import
 import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
@@ -19,8 +19,6 @@ const emailInput = document.getElementById('email');
 const mobileNumberInput = document.getElementById('mobile_number');
 const passwordInput = document.getElementById('password');
 const togglePasswordButton = document.getElementById('toggle-password');
-// Removed selfieWithIdInput reference as the field is removed from HTML
-// const selfieWithIdInput = document.getElementById('selfie_with_id');
 
 // Password strength checker elements
 const passwordLengthCheck = document.getElementById('password-length-check');
@@ -90,15 +88,11 @@ function updatePasswordStrength() {
 
 // --- Event Listeners ---
 
-// Authenticate Firebase on window load
-window.onload = async () => {
-    try {
-        await authenticateFirebase();
-    } catch (error) {
-        showMessage(`Failed to initialize Firebase: ${error.message}`, 'error');
-    }
+// Initial password strength check
+window.onload = () => {
     updatePasswordStrength(); // Initial check for password strength
 };
+// Removed the call to authenticateFirebase on window.onload as it's not needed for signup page directly.
 
 // Toggle password visibility
 togglePasswordButton.addEventListener('mousedown', () => {
@@ -224,19 +218,11 @@ signupForm.addEventListener('submit', async (event) => {
         isValid = false;
     }
 
-    // Removed selfie validation as the field is removed from HTML
-    // if (!selfieWithIdInput.files || selfieWithIdInput.files.length === 0) {
-    //     formErrorResponse('selfie_with_id-error', 'Selfie is required');
-    //     isValid = false;
-    // }
-
     // If all client-side validations pass, proceed with Firebase
     if (isValid) {
         try {
-            // Ensure Firebase is authenticated before proceeding
-            if (!getUserId()) {
-                await authenticateFirebase(); // Re-authenticate if somehow not already
-            }
+            // Removed: if (!getUserId()) { await authenticateFirebase(); }
+            // The createUserWithEmailAndPassword function will handle user creation and authentication.
 
             // Create user in Firebase Authentication
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -252,13 +238,12 @@ signupForm.addEventListener('submit', async (event) => {
                 facebookLink: facebookLinkInput.value.trim(),
                 email: email,
                 mobileNumber: mobileNumber,
-                // Removed selfieProvided field as the input is removed
-                // selfieProvided: selfieWithIdInput.files.length > 0 ? true : false,
                 createdAt: new Date(),
                 userId: userId // Store the user's UID
             };
 
             // Save user data to Firestore
+            // Ensure appId is correctly imported and available from firebase-init.js
             const userProfileDocRef = doc(db, `artifacts/${appId}/users/${userId}/user_profiles`, 'profile_data');
             await setDoc(userProfileDocRef, userData);
 
