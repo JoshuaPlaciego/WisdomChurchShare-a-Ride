@@ -19,7 +19,8 @@ const emailInput = document.getElementById('email');
 const mobileNumberInput = document.getElementById('mobile_number');
 const passwordInput = document.getElementById('password');
 const togglePasswordButton = document.getElementById('toggle-password');
-const selfieWithIdInput = document.getElementById('selfie_with_id');
+// Removed selfieWithIdInput reference as the field is removed from HTML
+// const selfieWithIdInput = document.getElementById('selfie_with_id');
 
 // Password strength checker elements
 const passwordLengthCheck = document.getElementById('password-length-check');
@@ -54,7 +55,7 @@ function showMessage(message, type = 'success') {
  */
 function formErrorResponse(inputID, response) {
     const error = document.getElementById(inputID);
-    if (error) {
+    if (error) { // Ensure the error element exists
         error.style.display = 'block';
         error.textContent = response;
     } else {
@@ -70,12 +71,14 @@ function updatePasswordStrength() {
 
     // Helper to update check status
     const updateCheck = (element, condition) => {
-        if (condition) {
-            element.classList.remove('text-red-500');
-            element.classList.add('text-green-600');
-        } else {
-            element.classList.remove('text-green-600');
-            element.classList.add('text-red-500');
+        if (element) { // Ensure element exists before manipulating classes
+            if (condition) {
+                element.classList.remove('text-red-500');
+                element.classList.add('text-green-600');
+            } else {
+                element.classList.remove('text-green-600');
+                element.classList.add('text-red-500');
+            }
         }
     };
 
@@ -221,10 +224,11 @@ signupForm.addEventListener('submit', async (event) => {
         isValid = false;
     }
 
-    if (!selfieWithIdInput.files || selfieWithIdInput.files.length === 0) {
-        formErrorResponse('selfie_with_id-error', 'Selfie is required');
-        isValid = false;
-    }
+    // Removed selfie validation as the field is removed from HTML
+    // if (!selfieWithIdInput.files || selfieWithIdInput.files.length === 0) {
+    //     formErrorResponse('selfie_with_id-error', 'Selfie is required');
+    //     isValid = false;
+    // }
 
     // If all client-side validations pass, proceed with Firebase
     if (isValid) {
@@ -248,7 +252,8 @@ signupForm.addEventListener('submit', async (event) => {
                 facebookLink: facebookLinkInput.value.trim(),
                 email: email,
                 mobileNumber: mobileNumber,
-                selfieProvided: selfieWithIdInput.files.length > 0 ? true : false,
+                // Removed selfieProvided field as the input is removed
+                // selfieProvided: selfieWithIdInput.files.length > 0 ? true : false,
                 createdAt: new Date(),
                 userId: userId // Store the user's UID
             };
