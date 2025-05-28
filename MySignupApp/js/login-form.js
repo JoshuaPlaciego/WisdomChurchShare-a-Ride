@@ -272,7 +272,33 @@ loginForm.addEventListener('submit', async (event) => {
             console.log("Is email verified from user object?", user.emailVerified);
             // --- END DEBUGGING LOGS ---
 
-            // Fetch user profile to check status
+            // --- NEW: Explicitly check email verification status immediately ---
+            if (!user.emailVerified) {
+                console.log("Email is not verified after successful sign-in. Displaying specific message.");
+                const unverifiedHtmlMessage = `
+                    <strong>Email Not Verified</strong>
+                    <p style="margin-top: 1rem; margin-bottom: 0.5rem; font-weight: normal;">
+                        Your email address (<strong>${email}</strong>) has not been verified.
+                        Please check your inbox (and spam folder) for a verification email.
+                    </p>
+                    <button id="resend-verification-button" class="message-box-button">
+                        Resend Verification Email
+                    </button>
+                    <button id="close-unverified-message-button" class="message-box-button" style="background-image: linear-gradient(to right, #6b7280, #4b5563); margin-left: 1rem;">
+                        Close
+                    </button>
+                `;
+                showMessage(unverifiedHtmlMessage, 'info', true, true); // Stay visible
+
+                // Sign out the user immediately if email is not verified
+                await auth.signOut();
+                hideLoading(); // Hide loading as message is now displayed
+                return; // Stop execution here
+            }
+            // --- END NEW CHECK ---
+
+
+            // Fetch user profile to check status (only if email is verified)
             const userProfileDocRef = doc(db, `artifacts/${appId}/users/${userId}/user_profiles`, 'profile_data');
             const docSnap = await getDoc(userProfileDocRef);
 
@@ -320,71 +346,16 @@ loginForm.addEventListener('submit', async (event) => {
                 errorMessage = 'Network error. Please check your internet connection.';
             } else if (error.code === 'auth/too-many-requests') {
                 errorMessage = 'Too many failed login attempts. Please try again later.';
-            } else if (error.code === 'auth/email-not-verified') {
-                // --- NEW HANDLING FOR UNVERIFIED EMAIL ---
-                console.log("User email not verified.");
-                const unverifiedHtmlMessage = `
-                    <strong>Email Not Verified</strong>
-                    <p style="margin-top: 1rem; margin-bottom: 0.5rem; font-weight: normal;">
-                        Your email address (<strong>${email}</strong>) has not been verified.
-                        Please check your inbox (and spam folder) for a verification email.
-                    </p>
-                    <button id="resend-verification-button" class="message-box-button">
-                        Resend Verification Email
-                    </button>
-                    <button id="close-unverified-message-button" class="message-box-button" style="background-image: linear-gradient(to right, #6b7280, #4b5563); margin-left: 1rem;">
-                        Close
-                    </button>
-                `;
-                // Show as info, HTML, and make it stay visible until a button is clicked
-                showMessage(unverifiedHtmlMessage, 'info', true, true);
-
-                // Add event listener for resend button
-                const resendButton = messageBox.querySelector('#resend-verification-button');
-                if (resendButton) {
-                    resendButton.onclick = async () => {
-                        resendButton.disabled = true;
-                        resendButton.textContent = 'Sending...';
-                        try {
-                            // Ensure there is a current user before sending email
-                            // This might be tricky if user wasn't fully signed in via auth/email-not-verified
-                            // Firebase usually needs a user object to send verification.
-                            // The user object is present after signInWithEmailAndPassword, even if email is not verified.
-                            if (auth.currentUser) {
-                                await sendEmailVerification(auth.currentUser);
-                                showMessage('Verification email resent! Please check your inbox.', 'success', false, false); // Auto-hide
-                            } else {
-                                console.error("No current user to resend verification email to.");
-                                showMessage('Failed to resend verification email. Please try logging in again.', 'error', false, false);
-                            }
-                        } catch (resendError) {
-                            console.error("Error resending verification email:", resendError);
-                            showMessage(`Failed to resend email: ${resendError.message}`, 'error', false, false); // Auto-hide
-                        } finally {
-                            resendButton.disabled = false;
-                            resendButton.textContent = 'Resend Verification Email';
-                        }
-                    };
-                }
-
-                // Add event listener for close button
-                const closeUnverifiedButton = messageBox.querySelector('#close-unverified-message-button');
-                if (closeUnverifiedButton) {
-                    closeUnverifiedButton.onclick = handleGenericMessageClose; // Reuse generic close
-                }
-
-                // Do not hide loading here, as messageBox will manage it.
-                // Re-enable form fields will be handled by showMessage's clear logic or resend button's completion
-            } else if (error.message) {
+            }
+            // The 'auth/email-not-verified' is now handled explicitly in the try block, so no need for this
+            // else if (error.code === 'auth/email-not-verified') { ... }
+            else if (error.message) {
                 errorMessage = error.message;
             }
 
             // For general errors not handled by specific code, display in the message box
-            if (error.code !== 'auth/email-not-verified') {
-                showMessage(`Login failed: ${errorMessage}`, 'error', false, false); // Auto-hide for general errors
-                hideLoading(); // Hide loading only for general errors
-            }
-
+            showMessage(`Login failed: ${errorMessage}`, 'error', false, false); // Auto-hide for general errors
+            hideLoading(); // Hide loading for all errors
         }
     }
 });
