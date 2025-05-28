@@ -152,14 +152,19 @@ function showMessage(message, type = 'success', isHtml = false) {
  * The form's visibility and button state are not reset here, as we are immediately redirecting.
  */
 function handleSuccessClose() {
-    // Hide the success message
-    showMessage('', 'clear'); // This will now only hide the message box.
+    // Immediately hide the message box
+    messageBox.classList.remove('show', 'success', 'error', 'info');
+    messageBox.style.display = 'none';
+    if (messageContent) messageContent.innerHTML = '';
+    if (messageIcon) messageIcon.style.display = 'none';
 
     // No need to re-enable form fields or button state here, as we are immediately redirecting.
     // The target page (userloginform.html) will handle its own initial state.
 
-    // Redirect to the login page immediately
-    window.location.href = 'userloginform.html';
+    // Redirect to the login page after a very short delay to ensure visual smoothness
+    setTimeout(() => {
+        window.location.href = 'userloginform.html';
+    }, 50); // 50ms delay for smooth transition
 }
 
 
