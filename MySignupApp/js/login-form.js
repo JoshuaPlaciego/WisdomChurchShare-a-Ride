@@ -307,7 +307,7 @@ loginForm.addEventListener('submit', async (event) => {
                 formErrorResponse('email-error', errorMessage);
             } else if (error.code === 'auth/user-disabled') {
                 errorMessage = 'Your account has been disabled.';
-            } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+            } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') { // <-- This line updated
                 errorMessage = 'Invalid email or password.';
                 formErrorResponse('email-error', errorMessage); // General error for security
                 formErrorResponse('password-error', 'Invalid email or password.');
