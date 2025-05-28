@@ -8,17 +8,21 @@ import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-
 
 // DOM element references
 const messageBox = document.getElementById('message-box');
-const messageIcon = messageBox ? messageBox.querySelector('.message-icon') : null;
+// Updated to get all icon elements
+const successIcon = messageBox ? messageBox.querySelector('.icon-success') : null;
+const errorIcon = messageBox ? messageBox.querySelector('.icon-error') : null;
+const infoIcon = messageBox ? messageBox.querySelector('.icon-info') : null;
 const messageContent = messageBox ? messageBox.querySelector('.message-content') : null;
 
 // Debugging logs for DOM elements (These are helpful for initial setup but can be removed later)
 if (!messageBox) console.error("Error: #message-box not found!");
-if (messageBox && !messageIcon) console.error("Error: .message-icon not found inside #message-box!");
+if (messageBox && !successIcon) console.error("Error: .icon-success not found inside #message-box!");
+if (messageBox && !errorIcon) console.error("Error: .icon-error not found inside #message-box!");
+if (messageBox && !infoIcon) console.error("Error: .icon-info not found inside #message-box!");
 if (messageBox && !messageContent) console.error("Error: .message-content not found inside #message-box!");
 
 
 const signupForm = document.getElementById('signup-form');
-// NEW: Reference to the main content container
 const mainContentContainer = document.getElementById('main-content-container');
 
 // Debugging logs for DOM elements
@@ -39,13 +43,13 @@ const firstNameInput = document.getElementById('first_name');
 const lastNameInput = document.getElementById('last_name');
 const genderInput = document.getElementById('gender');
 const cityInput = document.getElementById('city');
-const roleInput = document.getElementById('role'); // NEW: Reference to the role input
+const roleInput = document.getElementById('role');
 const facebookLinkInput = document.getElementById('facebook_link');
 const emailInput = document.getElementById('email');
 const mobileNumberInput = document.getElementById('mobile_number');
 const passwordInput = document.getElementById('password');
 const togglePasswordButton = document.getElementById('toggle-password');
-const signupButton = document.getElementById('signup-button'); // Reference to the signup button
+const signupButton = document.getElementById('signup-button');
 
 // Password strength checker elements
 const passwordLengthCheck = document.getElementById('password-length-check');
@@ -65,7 +69,6 @@ const loadingMessage = document.getElementById('loading-message');
  * @param {boolean} isHtml - True if the message is HTML, false for plain text.
  */
 function showMessage(message, type = 'success', isHtml = false) {
-    // Ensure messageBox exists before proceeding
     if (!messageBox) {
         console.error("showMessage: #message-box element is missing. Cannot display message.");
         return;
@@ -73,18 +76,17 @@ function showMessage(message, type = 'success', isHtml = false) {
 
     // Clear previous classes and content
     messageBox.classList.remove('show', 'success', 'error', 'info');
-
-    // Defensive checks for messageIcon and messageContent
-    if (messageIcon) messageIcon.style.display = 'none'; // Hide icon by default
     if (messageContent) messageContent.innerHTML = ''; // Clear content div
 
+    // Hide all icons first
+    if (successIcon) successIcon.style.display = 'none';
+    if (errorIcon) errorIcon.style.display = 'none';
+    if (infoIcon) infoIcon.style.display = 'none';
+
     if (type === 'clear') {
-        // When clearing, only hide the message box.
         messageBox.style.display = 'none';
-        // For error/info messages, ensure the main content container is visible again.
-        // For success, this 'clear' is called right before redirect, so no need to show form.
-        if (type !== 'success' && mainContentContainer) {
-             mainContentContainer.classList.remove('hide-main-content'); // Use the new class
+        if (mainContentContainer) {
+             mainContentContainer.classList.remove('hide-main-content');
              console.log("CLEAR: mainContentContainer shown.");
         }
         return;
@@ -93,49 +95,55 @@ function showMessage(message, type = 'success', isHtml = false) {
     // Set message content
     if (isHtml) {
         if (messageContent) messageContent.innerHTML = message;
-        if (messageIcon) messageIcon.style.display = 'block'; // Show icon for HTML (success) messages
     } else {
         if (messageContent) messageContent.textContent = message;
-        if (messageIcon) messageIcon.style.display = 'none'; // Hide icon for plain text messages
     }
 
     // Apply type-specific classes
     messageBox.classList.add('show', type);
-    messageBox.style.display = 'flex'; // IMPORTANT: Make message box visible
+    messageBox.style.display = 'flex'; // Make message box visible
+
+    // Show the appropriate icon based on type
+    if (type === 'success' && successIcon) {
+        successIcon.style.display = 'block';
+    } else if (type === 'error' && errorIcon) {
+        errorIcon.style.display = 'block';
+    } else if (type === 'info' && infoIcon) {
+        infoIcon.style.display = 'block';
+    }
+
 
     // Add event listener for the Close button if it's a success message
     if (type === 'success' && isHtml) {
-        // IMPORTANT: Hide the entire main content container when the success message appears
         if (mainContentContainer) {
-            mainContentContainer.classList.add('hide-main-content'); // Use the new class
-            console.log("SUCCESS: mainContentContainer hidden."); // Debugging log
+            mainContentContainer.classList.add('hide-main-content');
+            console.log("SUCCESS: mainContentContainer hidden.");
         } else {
             console.error("Could not hide mainContentContainer: element not found.");
         }
 
         const closeButton = messageBox.querySelector('#close-success-message-button');
         if (closeButton) {
-            // Remove any existing listeners to prevent duplicates
             closeButton.removeEventListener('click', handleSuccessClose);
             closeButton.addEventListener('click', handleSuccessClose);
         }
-        // Success message now relies on the close button, so keep it visible indefinitely
-        // No setTimeout to hide automatically for success HTML messages
     } else {
         // For other message types (error/info), hide automatically after 5 seconds
         setTimeout(() => {
-            if (messageBox.classList.contains(type)) { // Only hide if it's still the active message
+            if (messageBox.classList.contains(type)) {
                 messageBox.classList.remove('show');
                 messageBox.classList.remove(type);
                 if (messageContent) messageContent.innerHTML = '';
-                if (messageIcon) messageIcon.style.display = 'none';
-                messageBox.style.display = 'none'; // Hide message box after timeout
-                // If an error/info message, ensure the main content container is visible again
+                // Hide all icons when message box is cleared
+                if (successIcon) successIcon.style.display = 'none';
+                if (errorIcon) errorIcon.style.display = 'none';
+                if (infoIcon) infoIcon.style.display = 'none';
+
+                messageBox.style.display = 'none';
                 if (mainContentContainer) {
-                    mainContentContainer.classList.remove('hide-main-content'); // Use the new class
-                    console.log("ERROR/INFO: mainContentContainer reshown."); // Debugging log
+                    mainContentContainer.classList.remove('hide-main-content');
+                    console.log("ERROR/INFO: mainContentContainer reshown.");
                 }
-                // Also re-enable form fields and button for error/info messages
                 signupForm.querySelectorAll('input, select').forEach(element => {
                     element.disabled = false;
                 });
@@ -143,32 +151,31 @@ function showMessage(message, type = 'success', isHtml = false) {
                 signupButton.textContent = 'Sign Up';
                 signupButton.classList.remove('opacity-75', 'cursor-not-allowed');
             }
-        }, 5000); // 5 seconds for error/info messages
+        }, 5000);
     }
 }
 
 /**
  * Handles the click event for the success message's close button.
  * This function will hide the message and redirect to login.
- * The form's visibility and button state are not reset here, as we are immediately redirecting.
  */
 function handleSuccessClose() {
-    // Immediately hide the message box
     messageBox.classList.remove('show', 'success', 'error', 'info');
     messageBox.style.display = 'none';
     if (messageContent) messageContent.innerHTML = '';
-    if (messageIcon) messageIcon.style.display = 'none';
+    if (successIcon) successIcon.style.display = 'none';
+    if (errorIcon) errorIcon.style.display = 'none';
+    if (infoIcon) infoIcon.style.display = 'none';
 
-    // IMPORTANT: Immediately hide the main content container as well
+
     if (mainContentContainer) {
         mainContentContainer.classList.add('hide-main-content');
         console.log("CLOSE BUTTON: mainContentContainer hidden before redirect.");
     }
 
-    // Redirect to the login page after a very short delay to ensure visual smoothness
     setTimeout(() => {
         window.location.href = 'userloginform.html';
-    }, 50); // 50ms delay for smooth transition
+    }, 50);
 }
 
 
@@ -179,7 +186,7 @@ function handleSuccessClose() {
  */
 function formErrorResponse(inputID, response) {
     const error = document.getElementById(inputID);
-    if (error) { // Ensure the error element exists
+    if (error) {
         error.style.display = 'block';
         error.textContent = response;
     } else {
@@ -193,9 +200,8 @@ function formErrorResponse(inputID, response) {
 function updatePasswordStrength() {
     const password = passwordInput.value;
 
-    // Helper to update check status
     const updateCheck = (element, condition) => {
-        if (element) { // Ensure element exists before manipulating classes
+        if (element) {
             if (condition) {
                 element.classList.remove('text-red-500');
                 element.classList.add('text-green-600');
@@ -220,18 +226,16 @@ function updatePasswordStrength() {
  */
 function showLoading(message = 'Please wait...', buttonText = 'Signing you up. Please wait...') {
     loadingMessage.textContent = message;
-    loadingOverlay.style.display = 'flex'; // IMPORTANT: Explicitly set display to flex
+    loadingOverlay.style.display = 'flex';
     loadingOverlay.classList.add('visible');
 
-    // Disable all form fields (excluding the button initially)
     signupForm.querySelectorAll('input, select').forEach(element => {
         element.disabled = true;
     });
 
-    // Update and disable the signup button
     signupButton.disabled = true;
     signupButton.textContent = buttonText;
-    signupButton.classList.add('opacity-75', 'cursor-not-allowed'); // Add Tailwind classes for visual feedback
+    signupButton.classList.add('opacity-75', 'cursor-not-allowed');
 }
 
 /**
@@ -239,23 +243,19 @@ function showLoading(message = 'Please wait...', buttonText = 'Signing you up. P
  */
 function hideLoading() {
     loadingOverlay.classList.remove('visible');
-    loadingOverlay.style.display = 'none'; // IMPORTANT: Explicitly set display to none
-    signupButton.textContent = 'Sign Up'; // Revert button text
-    // signupButton.disabled remains true from showLoading()
-    // signupButton.classList.remove('opacity-75', 'cursor-not-allowed'); // Keep these classes for disabled state
+    loadingOverlay.style.display = 'none';
+    signupButton.textContent = 'Sign Up';
 }
 
 // --- Event Listeners ---
 
 // Initial password strength check AND mobile number initialization
 window.onload = () => {
-    updatePasswordStrength(); // Initial check for password strength
+    updatePasswordStrength();
 
-    // Initialize mobile number field with '09' and set cursor position
     if (mobileNumberInput.value === '' || !mobileNumberInput.value.startsWith('09')) {
         mobileNumberInput.value = '09';
     }
-    // Set cursor to the end
     mobileNumberInput.setSelectionRange(mobileNumberInput.value.length, mobileNumberInput.value.length);
 };
 
@@ -285,14 +285,10 @@ passwordInput.addEventListener('input', updatePasswordStrength);
 
 // --- Mobile Number Input Logic ---
 
-// Handles input changes (typing, pasting) to enforce '09' prefix and length
 mobileNumberInput.addEventListener('input', (event) => {
-    let value = event.target.value.replace(/\D/g, ''); // Remove non-numeric characters
+    let value = event.target.value.replace(/\D/g, '');
 
-    // Ensure it always starts with '09'
     if (!value.startsWith('09')) {
-        // If '09' was somehow removed or not at the start, prepend it.
-        // Try to keep digits after '09' if they exist in the original value.
         const indexOf09 = event.target.value.indexOf('09');
         if (indexOf09 !== -1) {
             value = '09' + value.substring(indexOf09 + 2);
@@ -301,52 +297,42 @@ mobileNumberInput.addEventListener('input', (event) => {
         }
     }
 
-    // Limit to 11 characters (09 + 9 digits)
     if (value.length > 11) {
         value = value.slice(0, 11);
     }
 
-    // If the value somehow becomes shorter than 2 characters (e.g., if someone tries to cut '09'), enforce '09'
     if (value.length < 2) {
         value = '09';
     }
 
     event.target.value = value;
 
-    // Crucial: Maintain cursor position. If cursor is at or before '09', move it after '09'.
-    // This is important after paste operations or if user tries to move cursor left.
     if (mobileNumberInput.selectionStart < 2) {
         mobileNumberInput.setSelectionRange(2, 2);
     }
 });
 
-// Prevents non-numeric characters from being typed
 mobileNumberInput.addEventListener('keypress', (event) => {
     const charCode = event.which ? event.which : event.keyCode;
-    if (charCode < 48 || charCode > 57) { // Only allow 0-9
+    if (charCode < 48 || charCode > 57) {
         event.preventDefault();
     }
 });
 
-// Prevents backspace/delete from removing '09'
 mobileNumberInput.addEventListener('keydown', (event) => {
     const start = mobileNumberInput.selectionStart;
     const end = mobileNumberInput.selectionEnd;
 
-    // If backspace or delete key is pressed AND the selection is entirely within '09' or attempts to delete '09'
     if ((event.key === 'Backspace' || event.key === 'Delete') && end <= 2) {
         event.preventDefault();
-        // If they try to backspace/delete '09', move cursor to after '09'
         mobileNumberInput.setSelectionRange(2, 2);
     }
 });
 
-// Ensures cursor is always at the end or after '09' when the field is focused
 mobileNumberInput.addEventListener('focus', () => {
-    if (mobileNumberInput.value.length < 2) { // Ensure it's '09' if somehow empty
+    if (mobileNumberInput.value.length < 2) {
         mobileNumberInput.value = '09';
     }
-    // Always place cursor at the end (after '09' or after typed digits)
     mobileNumberInput.setSelectionRange(mobileNumberInput.value.length, mobileNumberInput.value.length);
 });
 
@@ -355,16 +341,15 @@ mobileNumberInput.addEventListener('focus', () => {
 
 // Form submission handler
 signupForm.addEventListener('submit', async (event) => {
-    event.preventDefault(); // Prevent default form submission
+    event.preventDefault();
 
-    let isValid = true; // Flag to track overall form validity
+    let isValid = true;
 
-    // Clear previous errors for all fields
     document.querySelectorAll('.text-red-500').forEach(el => {
         el.style.display = 'none';
         el.textContent = '';
     });
-    showMessage('', 'clear'); // Clear any previous general messages
+    showMessage('', 'clear');
 
     // --- Client-Side Validation ---
     if (!firstNameInput.value.trim()) {
@@ -383,7 +368,6 @@ signupForm.addEventListener('submit', async (event) => {
         formErrorResponse('city-error', 'City is required');
         isValid = false;
     }
-    // NEW: Validate role input
     if (!roleInput.value) {
         formErrorResponse('role-error', 'Role is required');
         isValid = false;
@@ -430,7 +414,7 @@ signupForm.addEventListener('submit', async (event) => {
     }
 
     const mobileNumber = mobileNumberInput.value.trim();
-    if (!mobileNumber) { // This check is mostly for initial state or if someone bypasses JS
+    if (!mobileNumber) {
         formErrorResponse('mobile_number-error', 'Mobile Number is required');
         isValid = false;
     } else if (!/^09\d{9}$/.test(mobileNumber)) {
@@ -438,39 +422,33 @@ signupForm.addEventListener('submit', async (event) => {
         isValid = false;
     }
 
-    // If all client-side validations pass, proceed with Firebase
     if (isValid) {
         showLoading('Signing you up, please wait...');
         try {
-            // Create user in Firebase Authentication
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-            const userId = user.uid; // Get the newly created user's UID
+            const userId = user.uid;
 
-            // --- Send Email Verification ---
             await sendEmailVerification(user);
             console.log("Verification email sent!");
 
-            // Prepare user data for Firestore, including a 'status' for admin approval
             const userData = {
                 firstName: firstNameInput.value.trim(),
                 lastName: lastNameInput.value.trim(),
                 gender: genderInput.value,
                 city: cityInput.value,
-                role: roleInput.value, // NEW: Include role in user data
+                role: roleInput.value,
                 facebookLink: facebookLinkInput.value.trim(),
                 email: email,
                 mobileNumber: mobileNumber,
                 createdAt: new Date(),
-                userId: userId, // Store the user's UID
-                status: 'pending' // Initial status for admin approval
+                userId: userId,
+                status: 'pending'
             };
 
-            // Save user data to Firestore
             const userProfileDocRef = doc(db, `artifacts/${appId}/users/${userId}/user_profiles`, 'profile_data');
             await setDoc(userProfileDocRef, userData);
 
-            // --- Post-signup feedback and handling ---
             const successHtmlMessage = `
                 <strong>Your registration has been successfully submitted.</strong>
                 <p style="margin-top: 1rem; margin-bottom: 0.5rem; font-weight: normal;">Please take the following steps to activate your account:</p>
@@ -479,24 +457,19 @@ signupForm.addEventListener('submit', async (event) => {
                     <li><strong>2. Administrative Review:</strong> <span>Upon successful email verification, your account will undergo a review by our administration team. Your account status is currently pending approval.</span></li>
                     <li><strong>3. Account Activation:</strong> <span>You will receive a separate email notification once your account has been approved and activated.</span></li>
                 </ol>
-                <button id="close-success-message-button" class="mt-4 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition-all duration-300">
+                <button id="close-success-message-button" class="message-box-button">
                     Close & Proceed to Login
                 </button>
             `;
-            showMessage(successHtmlMessage, 'success', true); // Pass true for isHtml
+            showMessage(successHtmlMessage, 'success', true);
 
-            // Hide the loading overlay immediately
             hideLoading();
-
-            // Immediately sign out the user.
             await signOut(auth);
             console.log("User signed out after signup for verification process.");
 
-            signupForm.reset(); // Clear the form
-            mobileNumberInput.value = '09'; // Reset mobile number field specifically
-            updatePasswordStrength(); // Reset password strength indicators
-
-            // IMPORTANT: The main content container is now hidden by showMessage.
+            signupForm.reset();
+            mobileNumberInput.value = '09';
+            updatePasswordStrength();
 
         } catch (error) {
             console.error("Error during sign up or saving to Firestore:", error);
@@ -510,18 +483,18 @@ signupForm.addEventListener('submit', async (event) => {
             } else if (error.code === 'auth/network-request-failed') {
                 errorMessage = 'Network error. Please check your internet connection.';
             } else if (error.message) {
-                errorMessage = error.message; // Catch generic Firebase errors like "Missing or insufficient permissions."
+                errorMessage = error.message;
             }
-            showMessage(`Sign Up failed: ${errorMessage}`, 'error', false); // Pass false for plain text error
-            hideLoading(); // Hide loading UI on error (and re-enable form)
+            // For general errors, display in the message box with the error type
+            showMessage(`Sign Up failed: ${errorMessage}`, 'error', false);
+            hideLoading();
         }
     }
 });
 
-// Switch to Login Page (This link will now trigger the same close/redirect logic)
+// Switch to Login Page
 loginLink.addEventListener('click', (event) => {
     event.preventDefault();
-    // You can choose to show an info message here, or just directly trigger the close/redirect logic
     showMessage('Redirecting to Login Page...', 'info', false);
-    window.location.href = 'userloginform.html'; // Ensure this points to your login form
+    window.location.href = 'userloginform.html';
 });

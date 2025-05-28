@@ -7,115 +7,138 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Refined Message Box - ENHANCED for Success Message Structure */
+        /* Refined Message Box - Base Styling (now matches form containers) */
         #message-box {
             display: none;
             position: fixed;
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            /* Default for info/error, will be overridden by .success, .error, .info */
-            background-color: #f0fdf4; /* green-50 */
-            color: #15803d; /* green-800 */
-            padding: 1.5rem 2rem; /* Increased padding from previous version */
+            padding: 1.5rem 2rem;
             border-radius: 0.75rem;
-            border: 1px solid #16a34a; /* green-600 */
-            box-shadow: 0 8px 16px -4px rgba(21, 128, 61, 0.3), 0 4px 8px -2px rgba(21, 128, 61, 0.2);
             z-index: 10;
             opacity: 0;
-            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-            min-width: 300px; /* Increased minimum width */
-            text-align: center; /* Center the text */
-            display: flex; /* Use flexbox for icon and text alignment */
-            flex-direction: column; /* Stack icon and text vertically */
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out, box-shadow 0.3s ease, border-color 0.3s ease;
+
+            /* Base styling now matches form-container */
+            background-color: white; /* White background */
+            border: 1px solid #e2e8f0; /* Matching form container border */
+            box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.15), 0 6px 12px -4px rgba(0, 0, 0, 0.08); /* Matching form container shadow */
+
+            min-width: 300px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 0.75rem; /* Space between icon and text */
+            gap: 0.75rem;
         }
         #message-box.show {
-            display: flex; /* Use flex when showing */
+            display: flex;
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
 
-        /* NEW: Bluish theme for Success Message Box */
-        #message-box.success {
-            background-color: #e0f2fe; /* blue-50 for background */
-            color: #1e40af; /* blue-800 for main text, similar to form label text */
-            border-color: #2563eb; /* blue-600 for border */
-            box-shadow: 0 8px 16px -4px rgba(37, 99, 235, 0.3), 0 4px 8px -2px rgba(37, 99, 235, 0.2); /* Blue shadow */
+        /* Hover effect for ALL message boxes (matches form container hover) */
+        #message-box:hover {
+            box-shadow: 0 0 20px rgba(125, 211, 252, 0.4); /* Glowing effect */
+            border-color: #7dd3fc; /* Blue border on hover */
         }
-        /* Ensure the icon and list items also follow the new success theme */
+
+        /* Type-specific text colors and icon colors */
+        #message-box.success {
+            color: #4a5568; /* Matching form label text color */
+        }
         #message-box.success .message-icon {
-            color: #1e40af; /* blue-800 for icon */
+            color: #4a5568; /* Matching form label text color */
         }
         #message-box.success .message-content strong {
-            color: #1c3d8c; /* Slightly darker blue for strong text */
+            color: #2d3748; /* Matching form title panel color / darker gray */
         }
         #message-box.success .message-content p,
         #message-box.success .message-content ol li span {
-            color: #1e40af; /* blue-800 for normal text */
+            color: #6b7280; /* Matching general form text color */
         }
-
 
         #message-box.error {
-            background-color: #fee2e2;
-            color: #dc2626;
-            border-color: #dc2626;
+            color: #dc2626; /* Red text for errors */
         }
-        /* Reverted info message box color to original */
+        #message-box.error .message-icon {
+            color: #dc2626; /* Red icon for errors */
+        }
+        #message-box.error .message-content strong {
+            color: #b91c1c; /* Darker red for strong text in errors */
+        }
+        #message-box.error .message-content p,
+        #message-box.error .message-content ol li span {
+            color: #dc2626; /* Red for normal text in errors */
+        }
+
+
         #message-box.info {
-            background-color: #e0f2fe; /* Original blue-50 */
-            color: #0284c7; /* Original blue-700 equivalent */
-            border-color: #0ea5e9; /* Original blue-500 equivalent */
+            color: #4a5568; /* Matching form label text color */
         }
+        #message-box.info .message-icon {
+            color: #4a5568; /* Matching form label text color */
+        }
+        #message-box.info .message-content strong {
+            color: #2d3748; /* Matching form title panel color / darker gray */
+        }
+        #message-box.info .message-content p,
+        #message-box.info .message-content ol li span {
+            color: #6b7280; /* Matching general form text color */
+        }
+
 
         /* Icon styling for message box */
         .message-icon {
-            flex-shrink: 0; /* Prevent icon from shrinking */
-            margin-bottom: 0.5rem; /* Add space below icon */
-            width: 2.5rem; /* Slightly larger for the new icon: 40px */
-            height: 2.5rem; /* Slightly larger for the new icon: 40px */
+            flex-shrink: 0;
+            margin-bottom: 0.5rem;
+            width: 3.5rem; /* Increased size: 56px */
+            height: 3.5rem; /* Increased size: 56px */
+            display: none; /* Hidden by default, JS will show appropriate one */
         }
+        /* Ensure specific icons are shown when their parent type is active */
+        #message-box.success .icon-success { display: block; }
+        #message-box.error .icon-error { display: block; }
+        #message-box.info .icon-info { display: block; }
+
 
         /* Main text content within message box */
         .message-content {
-            font-size: 1.1rem; /* Slightly larger text */
-            font-weight: 600; /* Bolder text */
-            line-height: 1.4; /* Improve readability for multi-line text */
-            /* color will be set by parent #message-box.success or other types */
-            text-align: center; /* Ensure initial bold text is centered */
+            font-size: 1.1rem;
+            font-weight: 600;
+            line-height: 1.4;
+            text-align: center;
         }
 
         /* Styling for the ordered list within the message */
         .message-content ol {
-            list-style: none; /* Remove default numbering */
+            list-style: none;
             padding: 0;
-            margin-top: 1rem; /* Space after the introductory sentence */
-            text-align: left; /* Align list items to the left */
-            width: 100%; /* Take full width of parent */
+            margin-top: 1rem;
+            text-align: left;
+            width: 100%;
         }
 
         .message-content ol li {
-            margin-bottom: 0.75rem; /* Space between list items */
-            font-weight: normal; /* Ensure list item text is not bold by default */
+            margin-bottom: 0.75rem;
+            font-weight: normal;
             line-height: 1.3;
         }
 
         .message-content ol li strong {
-            display: inline; /* Keep step titles inline with number */
-            margin-right: 0.5rem; /* Space after step title */
-            font-weight: 700; /* Make step titles bolder */
-            /* color will be set by parent #message-box.success or other types */
+            display: inline;
+            margin-right: 0.5rem;
+            font-weight: 700;
         }
         .message-content ol li span {
-            font-weight: normal; /* Ensure span content is not bold */
-            display: inline; /* Keep description inline with title */
-            /* color will be set by parent #message-box.success or other types */
+            font-weight: normal;
+            display: inline;
         }
 
 
-        /* General Form Styles - Copied from signup.html */
+        /* General Form Styles */
         .form-container {
             background-color: #f7fafc;
             border-radius: 1rem;
@@ -241,11 +264,46 @@
         }
 
         .form-container .text-red-500 {
-            color: #e53e3e;
+            color: #e53e3e; /* This is already red */
             font-size: 0.875rem;
             margin-top: 0.5rem;
             display: block;
         }
+
+        /* Styles for the message box button - Matches form buttons */
+        .message-box-button {
+            border-radius: 0.75rem;
+            padding: 1rem 2rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0 4px 8px -1px rgba(0, 0, 0, 0.2);
+            background-image: linear-gradient(to right, #4a5568, #2d3748); /* Same gradient as form buttons */
+            color: white;
+            border: none;
+            box-shadow: 0 4px 8px -1px rgba(0, 0, 0, 0.2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: auto;
+            min-width: 150px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            user-select: none;
+            margin-top: 1.5rem; /* Adjusted margin to fit message box content */
+        }
+
+        .message-box-button:hover:not(:disabled) {
+            background-image: linear-gradient(to right, #374151, #1a202c); /* Same darker gradient on hover */
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.3);
+        }
+
+        .message-box-button:active:not(:disabled) {
+            transform: translateY(0) scale(1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
 
         /* General Card Styles */
         .card {
@@ -372,7 +430,7 @@
             text-align: left;
         }
 
-        /* NEW: Styles for the loading overlay */
+        /* Styles for the loading overlay */
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -408,23 +466,35 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* NEW: Class to hide the entire main content container */
+        /* Class to hide the entire main content container */
         .hide-main-content {
-            display: none !important; /* Force hide the container */
+            display: none !important;
         }
     </style>
 </head>
 <body class="bg-gray-100 font-inter">
     <div id="message-box">
-        <svg class="message-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg class="message-icon icon-success" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10" />
             <path d="M9 12l2 2 4-4" />
         </svg>
+        <svg class="message-icon icon-error" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <svg class="message-icon icon-info" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
+
         <div class="message-content">
             </div>
     </div>
 
-    <div class="container mx-auto p-6" id="main-content-container"> <section class="form-container">
+    <div class="container mx-auto p-6" id="main-content-container">
+        <section class="form-container">
             <div class="form-title-panel">
                 <h2>Sign Up</h2>
             </div>
