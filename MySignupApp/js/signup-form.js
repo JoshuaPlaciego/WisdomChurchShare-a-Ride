@@ -77,7 +77,7 @@ function showMessage(message, type = 'success', isHtml = false) {
     // Apply type-specific classes
     messageBox.classList.add('show', type);
 
-    // *** NEW: Add event listener for the Close button if it's a success message ***
+    // Add event listener for the Close button if it's a success message
     if (type === 'success' && isHtml) {
         const closeButton = messageBox.querySelector('#close-success-message-button');
         if (closeButton) {
@@ -108,7 +108,7 @@ function handleSuccessClose() {
     // Hide the success message
     showMessage('', 'clear'); // Use clear type to instantly hide and reset message box
 
-    // Re-enable form fields and restore button state (equivalent to hideLoading() logic)
+    // Re-enable form fields and restore button state
     signupForm.querySelectorAll('input, select').forEach(element => {
         element.disabled = false;
     });
@@ -183,20 +183,13 @@ function showLoading(message = 'Please wait...', buttonText = 'Signing you up. P
 }
 
 /**
- * Hides the loading overlay, re-enables the form, and restores the button text.
+ * Hides the loading overlay. Note: This function no longer re-enables form fields on its own.
+ * Form fields are re-enabled by handleSuccessClose() or on error.
  */
 function hideLoading() {
     loadingOverlay.classList.remove('visible');
-
-    // Enable all form fields
-    signupForm.querySelectorAll('input, select').forEach(element => {
-        element.disabled = false;
-    });
-
-    // Re-enable and restore the signup button
-    signupButton.disabled = false;
-    signupButton.textContent = 'Sign Up'; // Restore original text
-    signupButton.classList.remove('opacity-75', 'cursor-not-allowed'); // Remove loading classes
+    // IMPORTANT: Form fields are NOT re-enabled here. They remain disabled until handleSuccessClose() is called.
+    // This ensures the form stays blocked while the success message is displayed.
 }
 
 // --- Event Listeners ---
@@ -433,6 +426,11 @@ signupForm.addEventListener('submit', async (event) => {
             `;
             showMessage(successHtmlMessage, 'success', true); // Pass true for isHtml
 
+            // IMPORTANT CHANGE: Call hideLoading() here to make the loading overlay disappear.
+            // The form fields will remain disabled because showLoading() disabled them,
+            // and hideLoading() no longer re-enables them.
+            hideLoading();
+
             // Immediately sign out the user.
             await signOut(auth);
             console.log("User signed out after signup for verification process.");
@@ -440,9 +438,6 @@ signupForm.addEventListener('submit', async (event) => {
             signupForm.reset(); // Clear the form
             mobileNumberInput.value = '09'; // Reset mobile number field specifically
             updatePasswordStrength(); // Reset password strength indicators
-
-            // IMPORTANT: Do NOT call hideLoading() here. Form remains blocked.
-            // hideLoading(); // Removed to keep form blocked
 
         } catch (error) {
             console.error("Error during sign up or saving to Firestore:", error);
