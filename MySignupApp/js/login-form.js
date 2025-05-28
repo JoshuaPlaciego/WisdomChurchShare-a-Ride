@@ -267,6 +267,11 @@ loginForm.addEventListener('submit', async (event) => {
             const user = userCredential.user;
             const userId = user.uid;
 
+            // --- DEBUGGING LOGS ADDED HERE ---
+            console.log("User object after successful sign-in:", user);
+            console.log("Is email verified from user object?", user.emailVerified);
+            // --- END DEBUGGING LOGS ---
+
             // Fetch user profile to check status
             const userProfileDocRef = doc(db, `artifacts/${appId}/users/${userId}/user_profiles`, 'profile_data');
             const docSnap = await getDoc(userProfileDocRef);
@@ -307,7 +312,7 @@ loginForm.addEventListener('submit', async (event) => {
                 formErrorResponse('email-error', errorMessage);
             } else if (error.code === 'auth/user-disabled') {
                 errorMessage = 'Your account has been disabled.';
-            } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') { // <-- This line updated
+            } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
                 errorMessage = 'Invalid email or password.';
                 formErrorResponse('email-error', errorMessage); // General error for security
                 formErrorResponse('password-error', 'Invalid email or password.');
