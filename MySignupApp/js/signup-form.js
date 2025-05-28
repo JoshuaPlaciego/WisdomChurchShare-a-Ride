@@ -43,7 +43,7 @@ const firstNameInput = document.getElementById('first_name');
 const lastNameInput = document.getElementById('last_name');
 const genderInput = document.getElementById('gender');
 const cityInput = document.getElementById('city');
-const roleInput = document.getElementById('role');
+const roleInput = document.getElementById('role'); // Added roleInput reference
 const facebookLinkInput = document.getElementById('facebook_link');
 const emailInput = document.getElementById('email');
 const mobileNumberInput = document.getElementById('mobile_number');
@@ -119,6 +119,7 @@ function showMessage(message, type = 'success', isHtml = false) {
     if (iconMap[type]) {
         iconMap[type].style.display = 'block';
     }
+
 
     // Add event listener for the Close button if it's a success message
     if (type === 'success' && isHtml) {
@@ -212,11 +213,8 @@ function formErrorResponse(inputID, response) {
  * Clears all displayed error messages from the form.
  */
 function clearAllFormErrors() {
-    // Selects all elements that have the class 'text-red-500' (your error message divs)
     document.querySelectorAll('.text-red-500').forEach(el => {
-        // Hides the error message div
         el.style.display = 'none';
-        // Clears any text content from the error message div
         el.textContent = '';
     });
 }
@@ -324,16 +322,17 @@ function checkPasswordStrengthAndDisplayGauge(password) {
  */
 function showLoading(message = 'Please wait...', buttonText = 'Signing you up. Please wait...') {
     loadingMessage.textContent = message;
-    loadingOverlay.style.display = 'flex';
     loadingOverlay.classList.add('visible');
 
+    // Disable all form fields (excluding the button initially)
     signupForm.querySelectorAll('input, select').forEach(element => {
         element.disabled = true;
     });
 
+    // Update and disable the signup button
     signupButton.disabled = true;
     signupButton.textContent = buttonText;
-    signupButton.classList.add('opacity-75', 'cursor-not-allowed');
+    signupButton.classList.add('opacity-75', 'cursor-not-allowed'); // Add Tailwind classes for visual feedback
 }
 
 /**
@@ -341,8 +340,10 @@ function showLoading(message = 'Please wait...', buttonText = 'Signing you up. P
  */
 function hideLoading() {
     loadingOverlay.classList.remove('visible');
-    loadingOverlay.style.display = 'none';
-    signupButton.textContent = 'Sign Up';
+    // IMPORTANT: Form fields are NOT re-enabled here. They remain disabled until handleSuccessClose() is called or an error occurs.
+    // This ensures the form stays blocked while the success message is displayed.
+    signupButton.textContent = 'Sign Up'; // Restore original text
+    signupButton.classList.remove('opacity-75', 'cursor-not-allowed'); // Remove loading classes
 }
 
 // --- Event Listeners ---
@@ -443,13 +444,13 @@ mobileNumberInput.addEventListener('focus', () => {
 
 // Form submission handler
 signupForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
+    event.preventDefault(); // Prevent default form submission
 
-    let isValid = true;
+    let isValid = true; // Flag to track overall form validity
 
     // DRY: Clear all form errors using the helper function
     clearAllFormErrors();
-    showMessage('', 'clear'); // This line is fine and should remain
+    showMessage('', 'clear'); // Clear any previous general messages
 
     // --- Client-Side Validation ---
     if (!firstNameInput.value.trim()) {
@@ -468,7 +469,7 @@ signupForm.addEventListener('submit', async (event) => {
         formErrorResponse('city-error', 'City is required');
         isValid = false;
     }
-    if (!roleInput.value) {
+    if (!roleInput.value) { // Validation for roleInput
         formErrorResponse('role-error', 'Role is required');
         isValid = false;
     }
@@ -514,7 +515,7 @@ signupForm.addEventListener('submit', async (event) => {
     }
 
     const mobileNumber = mobileNumberInput.value.trim();
-    if (!mobileNumber) {
+    if (!mobileNumber) { // This check is mostly for initial state or if someone bypasses JS
         formErrorResponse('mobile_number-error', 'Mobile Number is required');
         isValid = false;
     } else if (!/^09\d{9}$/.test(mobileNumber)) {
@@ -522,33 +523,39 @@ signupForm.addEventListener('submit', async (event) => {
         isValid = false;
     }
 
+    // If all client-side validations pass, proceed with Firebase
     if (isValid) {
         showLoading('Signing you up, please wait...');
         try {
+            // Create user in Firebase Authentication
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-            const userId = user.uid;
+            const userId = user.uid; // Get the newly created user's UID
 
+            // --- Send Email Verification ---
             await sendEmailVerification(user);
             console.log("Verification email sent!");
 
+            // Prepare user data for Firestore, including a 'status' for admin approval
             const userData = {
                 firstName: firstNameInput.value.trim(),
                 lastName: lastNameInput.value.trim(),
                 gender: genderInput.value,
                 city: cityInput.value,
-                role: roleInput.value,
+                role: roleInput.value, // Included role in userData
                 facebookLink: facebookLinkInput.value.trim(),
                 email: email,
                 mobileNumber: mobileNumber,
                 createdAt: new Date(),
-                userId: userId,
+                userId: userId, // Store the user's UID
                 status: 'pending'
             };
 
+            // Save user data to Firestore
             const userProfileDocRef = doc(db, `artifacts/${appId}/users/${userId}/user_profiles`, 'profile_data');
             await setDoc(userProfileDocRef, userData);
 
+            // --- Post-signup feedback and redirection ---
             const successHtmlMessage = `
                 <strong>Your registration has been successfully submitted.</strong>
                 <p style="margin-top: 1rem; margin-bottom: 0.5rem; font-weight: normal;">Please take the following steps to activate your account:</p>
@@ -561,16 +568,16 @@ signupForm.addEventListener('submit', async (event) => {
                     Close & Proceed to Login
                 </button>
             `;
-            showMessage(successHtmlMessage, 'success', true);
+            showMessage(successHtmlMessage, 'success', true); // Pass true for isHtml
 
             hideLoading();
             await signOut(auth);
             console.log("User signed out after signup for verification process.");
 
-            signupForm.reset();
-            mobileNumberInput.value = '09';
-            updatePasswordStrength();
-            checkPasswordStrengthAndDisplayGauge(''); // NEW: Reset gauge after successful signup
+            signupForm.reset(); // Clear the form
+            mobileNumberInput.value = '09'; // Reset mobile number field specifically
+            updatePasswordStrength(); // Reset password strength indicators
+            checkPasswordStrengthAndDisplayGauge(''); // Reset gauge after successful signup
 
         } catch (error) {
             console.error("Error during sign up or saving to Firestore:", error);
@@ -589,6 +596,13 @@ signupForm.addEventListener('submit', async (event) => {
             // For general errors, display in the message box with the error type
             showMessage(`Sign Up failed: ${errorMessage}`, 'error', false);
             hideLoading();
+            // Re-enable form fields on error
+            signupForm.querySelectorAll('input, select').forEach(element => {
+                element.disabled = false;
+            });
+            signupButton.disabled = false;
+            signupButton.textContent = 'Sign Up';
+            signupButton.classList.remove('opacity-75', 'cursor-not-allowed');
         }
     }
 });

@@ -1,62 +1,83 @@
 // js/firebase-init.js
 
-// Import Firebase modules
+// Firebase App (the core library)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+// Firebase Authentication
+import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+// Firebase Firestore
 import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-    apiKey: "AIzaSyDuRG37e5qWu1kN7aZQVBwyQwj1EbIieHE",
-    authDomain: "wcsharearideinitiativeproject.firebaseapp.com",
-    projectId: "wcsharearideinitiativeproject",
-    storageBucket: "wcsharearideinitiativeproject.firebasestorage.app",
-    messagingSenderId: "169826993800",
-    appId: "1:169826993800:web:367bee8597df79406b813d",
-    measurementId: "G-7RJV9Q4NCT"
+  apiKey: "AIzaSyDuRG37e5qWu1kN7aZQVBwyQwj1EbIieHE",
+  authDomain: "wcsharearideinitiativeproject.firebaseapp.com",
+  databaseURL: "https://wcsharearideinitiativeproject-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "wcsharearideinitiativeproject",
+  storageBucket: "wcsharearideinitiativeproject.firebasestorage.app",
+  messagingSenderId: "169826993800",
+  appId: "1:169826993800:web:367bee8597df79406b813d",
+  measurementId: "G-7RJV9Q4NCT"
 };
 
-// Initialize Firebase app
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Use a default app ID if __app_id is not defined in your environment
-// This is used for constructing Firestore paths
+// Get the app ID from the global variable (provided by Canvas environment)
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-let currentUserId = null; // To store the authenticated user's ID
+let currentUserId = null; // To store the current user's UID
 
-/**
- * Authenticates with Firebase. Tries custom token first, then anonymous.
- * Sets the global currentUserId.
- * @returns {Promise<void>}
- */
-async function authenticateFirebase() {
-    try {
+// Function to get the current user ID, handling anonymous sign-in if no custom token
+async function getUserId() {
+    return new Promise(resolve => {
+        // onAuthStateChanged ensures Firebase auth state is ready
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // User is signed in.
+                currentUserId = user.uid;
+                console.log("Firebase: User is signed in with UID:", currentUserId);
+                unsubscribe(); // Stop listening after the first state change
+                resolve(currentUserId);
+            } else {
+                // User is signed out or not yet signed in.
+                console.log("Firebase: No user signed in. Attempting anonymous sign-in.");
+                try {
+                    // Sign in anonymously if no user is found
+                    await signInAnonymously(auth);
+                    // onAuthStateChanged will trigger again with the anonymous user
+                } catch (error) {
+                    console.error("Firebase: Anonymous sign-in failed:", error);
+                    // If anonymous sign-in fails, generate a random ID as a fallback
+                    currentUserId = crypto.randomUUID();
+                    console.log("Firebase: Falling back to random UUID for userId:", currentUserId);
+                    unsubscribe(); // Stop listening
+                    resolve(currentUserId);
+                }
+            }
+        });
+
+        // If __initial_auth_token is provided, attempt custom token sign-in first
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-            await signInWithCustomToken(auth, __initial_auth_token);
-            console.log("Signed in with custom token.");
-        } else {
-            await signInAnonymously(auth);
-            console.log("Signed in anonymously.");
+            console.log("Firebase: Custom auth token found. Attempting sign-in with custom token.");
+            signInWithCustomToken(auth, __initial_auth_token)
+                .then((userCredential) => {
+                    // Signed in successfully, onAuthStateChanged will handle the user
+                    console.log("Firebase: Signed in with custom token.");
+                })
+                .catch((error) => {
+                    console.error("Firebase: Custom token sign-in failed:", error);
+                    // Fallback to anonymous or existing onAuthStateChanged logic
+                });
         }
-        currentUserId = auth.currentUser?.uid || crypto.randomUUID(); // Get UID or generate random for anonymous
-        console.log("Current User ID:", currentUserId);
-    } catch (error) {
-        console.error("Firebase authentication error:", error);
-        // You might want to pass this error back to the calling script to display a message
-        throw error; // Re-throw to propagate the error
-    }
+    });
 }
 
-/**
- * Returns the current authenticated user's ID.
- * @returns {string|null} The user ID or null if not authenticated.
- */
-function getUserId() {
-    return currentUserId;
-}
+// Export Firebase instances and the getUserId function
+export { auth, db, appId, getUserId };
 
-// Export auth, db, appId, and the authentication function for use in other modules
-export { auth, db, appId, authenticateFirebase, getUserId };
+// Immediately call getUserId to ensure authentication state is handled on load
+getUserId();
