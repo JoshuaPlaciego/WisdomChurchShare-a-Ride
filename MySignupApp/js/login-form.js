@@ -2,7 +2,7 @@
 
 // Import Firebase instances and authentication function from firebase-init.js
 import { auth, db, appId, getUserId } from './firebase-init.js';
-import { signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 
@@ -140,15 +140,16 @@ function showMessage(message, type = 'success', isHtml = false, stayVisible = fa
 
 
 /**
- * Handles the click event for the success message's close button.
- * This function will hide the message and redirect to login.
+ * Handles the click event for the generic message's close button.
+ * This function will hide the message, re-enable the form, and sign out the user if they were logged in.
  */
-function handleGenericMessageClose() {
+async function handleGenericMessageClose() {
     showMessage('', 'clear'); // Use the clear functionality to hide and re-enable form
-    setTimeout(() => {
-        // Any specific redirection for generic close can go here,
-        // but for now, it just clears the message and re-enables the form.
-    }, 50);
+    // Sign out the user when they close the unverified email message
+    if (auth.currentUser) {
+        await signOut(auth);
+        console.log("User signed out after closing message.");
+    }
 }
 
 
@@ -288,7 +289,8 @@ loginForm.addEventListener('submit', async (event) => {
                         Close
                     </button>
                 `;
-                showMessage(unverifiedHtmlMessage, 'info', true, true); // Stay visible
+                // Changed type from 'info' to 'error' for red styling
+                showMessage(unverifiedHtmlMessage, 'error', true, true); // Stay visible
 
                 // Add event listener for resend button
                 const resendButton = messageBox.querySelector('#resend-verification-button');
@@ -297,11 +299,12 @@ loginForm.addEventListener('submit', async (event) => {
                         resendButton.disabled = true;
                         resendButton.textContent = 'Sending...';
                         try {
-                            if (auth.currentUser) { // Ensure user is still signed in before resending
+                            // auth.currentUser should be valid here because we are not signing out immediately
+                            if (auth.currentUser) {
                                 await sendEmailVerification(auth.currentUser);
                                 showMessage('Verification email resent! Please check your inbox.', 'success', false, false); // Auto-hide
                             } else {
-                                console.error("No current user to resend verification email to.");
+                                console.error("No current user to resend verification email to. User might have been signed out unexpectedly.");
                                 showMessage('Failed to resend verification email. Please try logging in again.', 'error', false, false);
                             }
                         } catch (resendError) {
@@ -317,10 +320,9 @@ loginForm.addEventListener('submit', async (event) => {
                 // Add event listener for close button
                 const closeUnverifiedButton = messageBox.querySelector('#close-unverified-message-button');
                 if (closeUnverifiedButton) {
-                    closeUnverifiedButton.onclick = handleGenericMessageClose; // Reuse generic close
+                    closeUnverifiedButton.onclick = handleGenericMessageClose; // Reuse generic close, which now handles sign out
                 }
 
-                await auth.signOut(); // Sign out the user immediately after showing the message
                 hideLoading(); // Hide loading as message is now displayed
                 return; // *** STOP EXECUTION HERE ***
             }
@@ -343,18 +345,18 @@ loginForm.addEventListener('submit', async (event) => {
                 } else if (userData.status === 'pending') {
                     // Specific message for pending approval
                     showMessage(`Your account status is currently pending approval. Please wait for an administrator to review your application.`, 'info', false);
-                    await auth.signOut(); // Sign out user if account is pending
+                    await signOut(auth); // Sign out user if account is pending
                 } else if (userData.status === 'rejected') {
                     showMessage(`Your account has been rejected. Please contact support for more information.`, 'error', false);
-                    await auth.signOut(); // Sign out user if account is rejected
+                    await signOut(auth); // Sign out user if account is rejected
                 } else {
                     showMessage(`Your account status is unknown. Please contact support.`, 'error', false);
-                    await auth.signOut(); // Sign out user for unknown status
+                    await signOut(auth); // Sign out user for unknown status
                 }
             } else {
                 // User profile not found (shouldn't happen if signup worked, but good to handle)
                 showMessage('User profile not found. Please contact support.', 'error', false);
-                await auth.signOut(); // Sign out user
+                await signOut(auth); // Sign out user
             }
 
             hideLoading();
