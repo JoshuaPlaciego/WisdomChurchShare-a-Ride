@@ -8,8 +8,16 @@ import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-
 
 // DOM element references
 const messageBox = document.getElementById('message-box');
-const messageIcon = messageBox.querySelector('.message-icon'); // Get the icon element
-const messageContent = messageBox.querySelector('.message-content'); // Get the content div
+// IMPORTANT: Add checks here to see if elements are found
+const messageIcon = messageBox ? messageBox.querySelector('.message-icon') : null;
+const messageContent = messageBox ? messageBox.querySelector('.message-content') : null;
+
+// Debugging logs for DOM elements
+if (!messageBox) console.error("Error: #message-box not found!");
+if (messageBox && !messageIcon) console.error("Error: .message-icon not found inside #message-box!");
+if (messageBox && !messageContent) console.error("Error: .message-content not found inside #message-box!");
+
+
 const signupForm = document.getElementById('signup-form');
 const loginLink = document.getElementById('login-link');
 const firstNameInput = document.getElementById('first_name');
@@ -41,10 +49,18 @@ const loadingMessage = document.getElementById('loading-message');
  * @param {boolean} isHtml - True if the message is HTML, false for plain text.
  */
 function showMessage(message, type = 'success', isHtml = false) {
+    // Ensure messageBox exists before proceeding
+    if (!messageBox) {
+        console.error("showMessage: #message-box element is missing. Cannot display message.");
+        return;
+    }
+
     // Clear previous classes and content
     messageBox.classList.remove('show', 'success', 'error', 'info');
-    messageIcon.style.display = 'none'; // Hide icon by default
-    messageContent.innerHTML = ''; // Clear content div
+
+    // Defensive checks for messageIcon and messageContent
+    if (messageIcon) messageIcon.style.display = 'none'; // Hide icon by default
+    if (messageContent) messageContent.innerHTML = ''; // Clear content div
 
     if (type === 'clear') {
         return;
@@ -52,11 +68,11 @@ function showMessage(message, type = 'success', isHtml = false) {
 
     // Set message content
     if (isHtml) {
-        messageContent.innerHTML = message;
-        messageIcon.style.display = 'block'; // Show icon for HTML (success) messages
+        if (messageContent) messageContent.innerHTML = message;
+        if (messageIcon) messageIcon.style.display = 'block'; // Show icon for HTML (success) messages
     } else {
-        messageContent.textContent = message;
-        messageIcon.style.display = 'none'; // Hide icon for plain text messages
+        if (messageContent) messageContent.textContent = message;
+        if (messageIcon) messageIcon.style.display = 'none'; // Hide icon for plain text messages
     }
 
     // Apply type-specific classes
@@ -67,8 +83,8 @@ function showMessage(message, type = 'success', isHtml = false) {
     setTimeout(() => {
         messageBox.classList.remove('show');
         messageBox.classList.remove(type);
-        messageContent.innerHTML = ''; // Clear content when hiding
-        messageIcon.style.display = 'none'; // Hide icon when hiding
+        if (messageContent) messageContent.innerHTML = ''; // Clear content when hiding
+        if (messageIcon) messageIcon.style.display = 'none'; // Hide icon when hiding
     }, displayDuration);
 }
 
