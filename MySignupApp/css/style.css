@@ -1,0 +1,482 @@
+/* Refined Message Box - Base Styling (now matches form containers) */
+        #message-box {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1.5rem 2rem;
+            border-radius: 0.75rem;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out, box-shadow 0.3s ease, border-color 0.3s ease;
+
+            /* Base styling now matches form-container */
+            background-color: white; /* White background */
+            border: 1px solid #e2e8f0; /* Matching form container border */
+            box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.15), 0 6px 12px -4px rgba(0, 0, 0, 0.08); /* Matching form container shadow */
+
+            min-width: 300px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+        #message-box.show {
+            display: flex;
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Hover effect for ALL message boxes (matches form container hover) */
+        #message-box:hover {
+            box-shadow: 0 0 20px rgba(125, 211, 252, 0.4); /* Glowing effect */
+            border-color: #7dd3fc; /* Blue border on hover */
+        }
+
+        /* Type-specific text colors and icon colors */
+        #message-box.success {
+            color: #4a5568; /* Matching form label text color */
+        }
+        #message-box.success .message-icon {
+            color: #4a5568; /* Matching form label text color */
+        }
+        #message-box.success .message-content strong {
+            color: #2d3748; /* Matching form title panel color / darker gray */
+        }
+        #message-box.success .message-content p,
+        #message-box.success .message-content ol li span {
+            color: #6b7280; /* Matching general form text color */
+        }
+
+        #message-box.error {
+            color: #dc2626; /* Red text for errors */
+        }
+        #message-box.error .message-icon {
+            color: #dc2626; /* Red icon for errors */
+        }
+        #message-box.error .message-content strong {
+            color: #b91c1c; /* Darker red for strong text in errors */
+        }
+        #message-box.error .message-content p,
+        #message-box.error .message-content ol li span {
+            color: #dc2626; /* Red for normal text in errors */
+        }
+
+
+        #message-box.info {
+            color: #4a5568; /* Matching form label text color */
+        }
+        #message-box.info .message-icon {
+            color: #4a5568; /* Matching form label text color */
+        }
+        #message-box.info .message-content strong {
+            color: #2d3748; /* Matching form title panel color / darker gray */
+        }
+        #message-box.info .message-content p,
+        #message-box.info .message-content ol li span {
+            color: #6b7280; /* Matching general form text color */
+        }
+
+
+        /* Icon styling for message box */
+        .message-icon {
+            flex-shrink: 0;
+            margin-bottom: 0.5rem;
+            width: 3.5rem; /* Increased size: 56px */
+            height: 3.5rem; /* Increased size: 56px */
+            display: none; /* Hidden by default, JS will show appropriate one */
+        }
+        /* Ensure specific icons are shown when their parent type is active */
+        #message-box.success .icon-success { display: block; }
+        #message-box.error .icon-error { display: block; }
+        #message-box.info .icon-info { display: block; }
+
+
+        /* Main text content within message box */
+        .message-content {
+            font-size: 1.1rem;
+            font-weight: 600;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        /* Styling for the ordered list within the message */
+        .message-content ol {
+            list-style: none;
+            padding: 0;
+            margin-top: 1rem;
+            text-align: left;
+            width: 100%;
+        }
+
+        .message-content ol li {
+            margin-bottom: 0.75rem;
+            font-weight: normal;
+            line-height: 1.3;
+        }
+
+        .message-content ol li strong {
+            display: inline;
+            margin-right: 0.5rem;
+            font-weight: 700;
+        }
+        .message-content ol li span {
+            font-weight: normal;
+            display: inline;
+        }
+
+
+        /* General Form Styles */
+        .form-container {
+            background-color: #f7fafc;
+            border-radius: 1rem;
+            padding: 2.5rem;
+            box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.15), 0 6px 12px -4px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .form-container:hover, .form-container:focus-within {
+            box-shadow: 0 0 20px rgba(125, 211, 252, 0.4);
+            border-color: #7dd3fc;
+        }
+
+        /* Reverted form title panel gradient to original dark gray */
+        .form-title-panel {
+            background-image: linear-gradient(to right, #4a5568, #2d3748); /* Original dark gray gradient */
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem 0.75rem 0 0;
+            margin-bottom: 2rem;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+            user-select: none;
+        }
+
+        .form-container div {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-container label {
+            font-weight: 500;
+            color: #4a5568; /* This is the text color for form labels */
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .form-container label:hover {
+            color: #2d3748;
+        }
+
+        .form-container input, .form-container textarea, .form-container select {
+            border-radius: 0.75rem;
+            padding: 0.8rem;
+            border: 1px solid #cbd5e0;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+            width: 100%;
+            font-size: 1rem;
+            line-height: 1.5;
+            background-color: white;
+            cursor: text;
+        }
+
+        .form-container input:focus, .form-container textarea:focus, .form-container select:focus {
+            outline: none;
+            border-color: #3182ce;
+            box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.15);
+            background-color: #f7fafc;
+        }
+
+        .form-container input:hover, .form-container textarea:hover, .form-container select:hover {
+            background-color: #f7fafc;
+            border-color: #90caf9;
+        }
+
+        .form-container textarea {
+            min-height: 100px;
+            resize: vertical;
+            cursor: text;
+        }
+
+        /* Reverted button gradient to original dark gray */
+        .form-container button {
+            border-radius: 0.75rem;
+            padding: 1rem 2rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0 4px 8px -1px rgba(0, 0, 0, 0.2);
+            background-image: linear-gradient(to right, #4a5568, #2d3748); /* Original dark gray gradient */
+            color: white;
+            border: none;
+            box-shadow: 0 4px 8px -1px rgba(0, 0, 0, 0.2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: auto;
+            min-width: 150px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .form-container button:hover:not(:disabled) {
+            background-image: linear-gradient(to right, #374151, #1a202c); /* Original darker gray on hover */
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-container button:active:not(:disabled) {
+            transform: translateY(0) scale(1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-container button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-image: linear-gradient(to right, #6b7280, #4b5563); /* Original lighter gray for disabled state */
+            box-shadow: none;
+            transform: none;
+        }
+
+        .form-container .text-red-500 {
+            color: #e53e3e; /* This is already red */
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            display: block;
+        }
+
+        /* Styles for the message box button - Matches form buttons */
+        .message-box-button {
+            border-radius: 0.75rem;
+            padding: 1rem 2rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0 4px 8px -1px rgba(0, 0, 0, 0.2);
+            background-image: linear-gradient(to right, #4a5568, #2d3748); /* Same gradient as form buttons */
+            color: white;
+            border: none;
+            box-shadow: 0 4px 8px -1px rgba(0, 0, 0, 0.2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: auto;
+            min-width: 150px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            user-select: none;
+            margin-top: 1.5rem; /* Adjusted margin to fit message box content */
+        }
+
+        .message-box-button:hover:not(:disabled) {
+            background-image: linear-gradient(to right, #374151, #1a202c); /* Same darker gradient on hover */
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.3);
+        }
+
+        .message-box-button:active:not(:disabled) {
+            transform: translateY(0) scale(1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+
+        /* General Card Styles */
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 6px 10px -2px rgba(0, 0, 0, 0.15), 0 3px 7px -2px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            transition: transform 0.2s ease, box-shadow 0.3s ease;
+            user-select: none;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0 15px rgba(100, 100, 255, 0.2);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .card-content {
+            font-size: 1rem;
+            color: #6b7280;
+            line-height: 1.7;
+            cursor: text;
+            user-select: none;
+        }
+
+        /* Utility Classes */
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-4 {
+            margin-top: 1rem;
+        }
+
+        .mt-6 {
+            margin-top: 1.5rem;
+        }
+
+        .mb-4 {
+            margin-bottom: 1rem;
+        }
+
+        .mb-6 {
+            margin-bottom: 1.5rem;
+        }
+
+        .font-semibold {
+            font-weight: 600;
+        }
+
+        .text-gray-700 {
+            color: #4a5568;
+        }
+
+        .text-gray-800 {
+            color: #2d3748;
+        }
+
+        .bg-gray-100 {
+            background-color: #f7fafc;
+        }
+
+        .w-full {
+            width: 100%;
+        }
+
+        .rounded-md {
+            border-radius: 0.75rem;
+        }
+
+        .p-4 {
+            padding: 1rem;
+        }
+
+        .p-6 {
+            padding: 1.5rem;
+        }
+
+        .font-bold {
+            font-weight: 700;
+        }
+
+        .text-white {
+            color: white;
+        }
+
+        .bg-green-500 {
+            background-color: #48bb78;
+        }
+
+        .hover\:bg-green-700:hover {
+            background-color: #2d6945;
+        }
+
+        .focus\:outline-none:focus {
+            outline: none;
+        }
+
+        .focus\:shadow-outline:focus {
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+        }
+
+        .inline-flex {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .space-y-4 > * + * {
+            margin-top: 1rem;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+
+        /* Styles for the loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+            display: flex;
+            flex-direction: column; /* Align items vertically */
+            justify-content: center;
+            align-items: center;
+            z-index: 2000; /* Higher than message box */
+            visibility: hidden; /* Hidden by default */
+            opacity: 0; /* Hidden by default */
+            transition: visibility 0s, opacity 0.3s linear;
+        }
+        .loading-overlay.visible {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Basic spinner animation - Reverted color to original dark gray */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #4a5568; /* Reverted to original dark gray */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Class to hide the entire main content container */
+        .hide-main-content {
+            display: none !important;
+        }
+
+        /* Password Strength Gauge Styles */
+        #password-strength-gauge {
+            background-color: #e0e0e0; /* Default background for empty gauge */
+        }
+
+        /* Strength levels - colors will be applied by JS */
+        .strength-0 { background-color: #ef4444; /* Red - Very Weak */ }
+        .strength-1 { background-color: #f97316; /* Orange - Weak */ }
+        .strength-2 { background-color: #facc15; /* Yellow - Medium */ }
+        .strength-3 { background-color: #84cc16; /* Light Green - Strong */ }
+        .strength-4 { background-color: #22c55e; /* Green - Very Strong / Excellent */ }
+
+        /* Text colors for strength feedback */
+        .text-strength-0 { color: #ef4444; }
+        .text-strength-1 { color: #f97316; }
+        .text-strength-2 { color: #facc15; }
+        .text-strength-3 { color: #84cc16; }
+        .text-strength-4 { color: #22c55e; }
