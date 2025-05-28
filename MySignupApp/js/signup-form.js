@@ -18,6 +18,10 @@ if (messageBox && !messageContent) console.error("Error: .message-content not fo
 
 
 const signupForm = document.getElementById('signup-form');
+// NEW DEBUGGING LOG: Check if signupForm is found
+if (!signupForm) console.error("Error: #signup-form not found!");
+
+
 const loginLink = document.getElementById('login-link');
 const firstNameInput = document.getElementById('first_name');
 const lastNameInput = document.getElementById('last_name');
@@ -62,9 +66,10 @@ function showMessage(message, type = 'success', isHtml = false) {
     if (messageContent) messageContent.innerHTML = ''; // Clear content div
 
     if (type === 'clear') {
-        // IMPORTANT CHANGE: When clearing, only hide the message box.
-        // The form's visibility is handled when the success message is initially shown/hidden by close button.
+        // When clearing, only hide the message box.
         messageBox.style.display = 'none';
+        // IMPORTANT: When clearing a success message, we are about to redirect, so no need to show form.
+        // If it's an error/info message being cleared, the form should already be visible.
         return;
     }
 
@@ -84,7 +89,11 @@ function showMessage(message, type = 'success', isHtml = false) {
     // Add event listener for the Close button if it's a success message
     if (type === 'success' && isHtml) {
         // IMPORTANT: Hide the signup form when the success message appears
-        signupForm.style.display = 'none';
+        if (signupForm) { // Ensure signupForm is found before trying to hide it
+            signupForm.style.display = 'none';
+            console.log("Signup form hidden."); // Debugging log
+        }
+
 
         const closeButton = messageBox.querySelector('#close-success-message-button');
         if (closeButton) {
@@ -103,6 +112,17 @@ function showMessage(message, type = 'success', isHtml = false) {
                 if (messageContent) messageContent.innerHTML = '';
                 if (messageIcon) messageIcon.style.display = 'none';
                 messageBox.style.display = 'none'; // Hide message box after timeout
+                // If an error/info message, ensure the form is visible again
+                if (signupForm) {
+                    signupForm.style.display = 'block';
+                    // Also re-enable form fields and button for error/info messages
+                    signupForm.querySelectorAll('input, select').forEach(element => {
+                        element.disabled = false;
+                    });
+                    signupButton.disabled = false;
+                    signupButton.textContent = 'Sign Up';
+                    signupButton.classList.remove('opacity-75', 'cursor-not-allowed');
+                }
             }
         }, 5000); // 5 seconds for error/info messages
     }
@@ -115,7 +135,7 @@ function showMessage(message, type = 'success', isHtml = false) {
  */
 function handleSuccessClose() {
     // Hide the success message
-    showMessage('', 'clear'); // This will now only hide the message box, not show the form.
+    showMessage('', 'clear'); // This will now only hide the message box.
 
     // No need to re-enable form fields or button state here, as we are immediately redirecting.
     // The target page (userloginform.html) will handle its own initial state.
