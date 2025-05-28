@@ -88,9 +88,16 @@ function updatePasswordStrength() {
 
 // --- Event Listeners ---
 
-// Initial password strength check
+// Initial password strength check AND mobile number initialization
 window.onload = () => {
     updatePasswordStrength(); // Initial check for password strength
+
+    // Initialize mobile number field with '09' and set cursor position
+    if (mobileNumberInput.value === '' || !mobileNumberInput.value.startsWith('09')) {
+        mobileNumberInput.value = '09';
+    }
+    // Set cursor to the end
+    mobileNumberInput.setSelectionRange(mobileNumberInput.value.length, mobileNumberInput.value.length);
 };
 
 // Toggle password visibility
@@ -116,26 +123,76 @@ togglePasswordButton.addEventListener('touchend', (e) => {
 // Real-time password strength feedback
 passwordInput.addEventListener('input', updatePasswordStrength);
 
-// Mobile Number input formatting
+
+// --- Mobile Number Input Logic ---
+
+// Handles input changes (typing, pasting) to enforce '09' prefix and length
 mobileNumberInput.addEventListener('input', (event) => {
     let value = event.target.value.replace(/\D/g, ''); // Remove non-numeric characters
-    if (value.length > 0) {
-        if (!value.startsWith('09')) {
+
+    // Ensure it always starts with '09'
+    if (!value.startsWith('09')) {
+        // If '09' was somehow removed or not at the start, prepend it.
+        // Try to keep digits after '09' if they exist in the original value.
+        const indexOf09 = event.target.value.indexOf('09');
+        if (indexOf09 !== -1) {
+            value = '09' + value.substring(indexOf09 + 2);
+        } else {
             value = '09' + value;
         }
-        if (value.length > 11) {
-            value = value.slice(0, 11);
-        }
     }
+
+    // Limit to 11 characters (09 + 9 digits)
+    if (value.length > 11) {
+        value = value.slice(0, 11);
+    }
+
+    // If the value somehow becomes shorter than 2 characters (e.g., if someone tries to cut '09'), enforce '09'
+    if (value.length < 2) {
+        value = '09';
+    }
+
     event.target.value = value;
+
+    // Crucial: Maintain cursor position. If cursor is at or before '09', move it after '09'.
+    // This is important after paste operations or if user tries to move cursor left.
+    if (mobileNumberInput.selectionStart < 2) {
+        mobileNumberInput.setSelectionRange(2, 2);
+    }
 });
 
+// Prevents non-numeric characters from being typed
 mobileNumberInput.addEventListener('keypress', (event) => {
     const charCode = event.which ? event.which : event.keyCode;
-    if (charCode < 48 || charCode > 57) {
+    if (charCode < 48 || charCode > 57) { // Only allow 0-9
         event.preventDefault();
     }
 });
+
+// Prevents backspace/delete from removing '09'
+mobileNumberInput.addEventListener('keydown', (event) => {
+    const start = mobileNumberInput.selectionStart;
+    const end = mobileNumberInput.selectionEnd;
+
+    // If backspace or delete key is pressed AND the selection is entirely within '09' or attempts to delete '09'
+    if ((event.key === 'Backspace' || event.key === 'Delete') && end <= 2) {
+        event.preventDefault();
+        // If they try to backspace/delete '09', move cursor to after '09'
+        mobileNumberInput.setSelectionRange(2, 2);
+    }
+});
+
+// Ensures cursor is always at the end or after '09' when the field is focused
+mobileNumberInput.addEventListener('focus', () => {
+    if (mobileNumberInput.value.length < 2) { // Ensure it's '09' if somehow empty
+        mobileNumberInput.value = '09';
+    }
+    // Always place cursor at the end (after '09' or after typed digits)
+    mobileNumberInput.setSelectionRange(mobileNumberInput.value.length, mobileNumberInput.value.length);
+});
+
+// --- End Mobile Number Input Logic ---
+
 
 // Form submission handler
 signupForm.addEventListener('submit', async (event) => {
@@ -209,7 +266,7 @@ signupForm.addEventListener('submit', async (event) => {
     }
 
     const mobileNumber = mobileNumberInput.value.trim();
-    if (!mobileNumber) {
+    if (!mobileNumber) { // This check is mostly for initial state or if someone bypasses JS
         formErrorResponse('mobile_number-error', 'Mobile Number is required');
         isValid = false;
     } else if (!/^09\d{9}$/.test(mobileNumber)) {
@@ -249,6 +306,7 @@ signupForm.addEventListener('submit', async (event) => {
 
             showMessage('Sign Up successful! Please check your email for verification. Your account is pending admin approval.', 'success');
             signupForm.reset(); // Clear the form
+            mobileNumberInput.value = '09'; // Reset mobile number field specifically
             updatePasswordStrength(); // Reset password strength indicators
 
         } catch (error) {
@@ -275,5 +333,5 @@ loginLink.addEventListener('click', (event) => {
     event.preventDefault();
     showMessage('Redirecting to Login Page (Simulated)', 'info');
     // In a real application, you would navigate to your login page:
-    // window.location.href = 'login.html';
+    window.location.href = 'login.html'; // Assuming login.html will be created next
 });
