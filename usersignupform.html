@@ -348,7 +348,7 @@
             text-align: left;
         }
 
-        /* NEW: Styles for the loading overlay - CRUCIAL FIX HERE */
+        /* Styles for the loading overlay */
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -356,7 +356,7 @@
             width: 100%;
             height: 100%;
             background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
-            display: none; /* IMPORTANT: Hidden by default, completely out of flow */
+            display: none; /* Hidden by default, completely out of flow */
             flex-direction: column; /* Align items vertically */
             justify-content: center;
             align-items: center;
@@ -365,11 +365,11 @@
             transition: opacity 0.3s ease-in-out; /* Removed visibility from transition */
         }
         .loading-overlay.visible {
-            display: flex; /* IMPORTANT: Show as flex when visible */
+            display: flex; /* Show as flex when visible */
             opacity: 1;
         }
 
-        /* Basic spinner animation - Reverted color to original dark gray */
+        /* Basic spinner animation */
         .spinner {
             border: 4px solid rgba(0, 0, 0, 0.1);
             border-left-color: #4a5568; /* Reverted to original dark gray */
@@ -382,11 +382,15 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* NEW: Class to hide the entire form container */
+        .hide-main-content { /* Renamed for clarity, applies to the main container */
+            display: none !important; /* Force hide the container */
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-inter">
-    <div class="container mx-auto p-6">
-        <div id="message-box">
+    <div class="container mx-auto p-6" id="main-content-container"> <div id="message-box">
             <svg class="message-icon w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>

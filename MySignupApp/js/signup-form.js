@@ -18,8 +18,20 @@ if (messageBox && !messageContent) console.error("Error: .message-content not fo
 
 
 const signupForm = document.getElementById('signup-form');
-// NEW DEBUGGING LOG: Check if signupForm is found
-if (!signupForm) console.error("Error: #signup-form not found!");
+// NEW: Reference to the main content container
+const mainContentContainer = document.getElementById('main-content-container');
+
+// Debugging logs for DOM elements
+if (!signupForm) {
+    console.error("Error: #signup-form not found! Please check your HTML.");
+} else {
+    console.log("signupForm element found:", signupForm);
+}
+if (!mainContentContainer) {
+    console.error("Error: #main-content-container not found! Please check your HTML.");
+} else {
+    console.log("mainContentContainer element found:", mainContentContainer);
+}
 
 
 const loginLink = document.getElementById('login-link');
@@ -68,8 +80,12 @@ function showMessage(message, type = 'success', isHtml = false) {
     if (type === 'clear') {
         // When clearing, only hide the message box.
         messageBox.style.display = 'none';
-        // IMPORTANT: When clearing a success message, we are about to redirect, so no need to show form.
-        // If it's an error/info message being cleared, the form should already be visible.
+        // For error/info messages, ensure the main content container is visible again.
+        // For success, this 'clear' is called right before redirect, so no need to show form.
+        if (type !== 'success' && mainContentContainer) {
+             mainContentContainer.classList.remove('hide-main-content'); // Use the new class
+             console.log("CLEAR: mainContentContainer shown.");
+        }
         return;
     }
 
@@ -88,12 +104,13 @@ function showMessage(message, type = 'success', isHtml = false) {
 
     // Add event listener for the Close button if it's a success message
     if (type === 'success' && isHtml) {
-        // IMPORTANT: Hide the signup form when the success message appears
-        if (signupForm) { // Ensure signupForm is found before trying to hide it
-            signupForm.style.display = 'none';
-            console.log("Signup form hidden."); // Debugging log
+        // IMPORTANT: Hide the entire main content container when the success message appears
+        if (mainContentContainer) {
+            mainContentContainer.classList.add('hide-main-content'); // Use the new class
+            console.log("SUCCESS: mainContentContainer hidden."); // Debugging log
+        } else {
+            console.error("Could not hide mainContentContainer: element not found.");
         }
-
 
         const closeButton = messageBox.querySelector('#close-success-message-button');
         if (closeButton) {
@@ -112,17 +129,18 @@ function showMessage(message, type = 'success', isHtml = false) {
                 if (messageContent) messageContent.innerHTML = '';
                 if (messageIcon) messageIcon.style.display = 'none';
                 messageBox.style.display = 'none'; // Hide message box after timeout
-                // If an error/info message, ensure the form is visible again
-                if (signupForm) {
-                    signupForm.style.display = 'block';
-                    // Also re-enable form fields and button for error/info messages
-                    signupForm.querySelectorAll('input, select').forEach(element => {
-                        element.disabled = false;
-                    });
-                    signupButton.disabled = false;
-                    signupButton.textContent = 'Sign Up';
-                    signupButton.classList.remove('opacity-75', 'cursor-not-allowed');
+                // If an error/info message, ensure the main content container is visible again
+                if (mainContentContainer) {
+                    mainContentContainer.classList.remove('hide-main-content'); // Use the new class
+                    console.log("ERROR/INFO: mainContentContainer reshown."); // Debugging log
                 }
+                // Also re-enable form fields and button for error/info messages
+                signupForm.querySelectorAll('input, select').forEach(element => {
+                    element.disabled = false;
+                });
+                signupButton.disabled = false;
+                signupButton.textContent = 'Sign Up';
+                signupButton.classList.remove('opacity-75', 'cursor-not-allowed');
             }
         }, 5000); // 5 seconds for error/info messages
     }
@@ -463,8 +481,7 @@ signupForm.addEventListener('submit', async (event) => {
             mobileNumberInput.value = '09'; // Reset mobile number field specifically
             updatePasswordStrength(); // Reset password strength indicators
 
-            // IMPORTANT: Hide the entire signup form here.
-            signupForm.style.display = 'none'; // This is the key change for hiding the form
+            // IMPORTANT: The main content container is now hidden by showMessage.
 
         } catch (error) {
             console.error("Error during sign up or saving to Firestore:", error);
