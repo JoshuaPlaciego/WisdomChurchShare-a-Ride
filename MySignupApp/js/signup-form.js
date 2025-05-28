@@ -8,6 +8,8 @@ import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-
 
 // DOM element references
 const messageBox = document.getElementById('message-box');
+const messageIcon = messageBox.querySelector('.message-icon'); // Get the icon element
+const messageContent = messageBox.querySelector('.message-content'); // Get the content div
 const signupForm = document.getElementById('signup-form');
 const loginLink = document.getElementById('login-link');
 const firstNameInput = document.getElementById('first_name');
@@ -34,22 +36,41 @@ const loadingMessage = document.getElementById('loading-message');
 
 /**
  * Displays a message in the message box.
- * @param {string} message - The message to display.
+ * @param {string} message - The message to display (can be plain text or HTML for success).
  * @param {string} type - The type of message ('success', 'error', 'info', 'clear').
+ * @param {boolean} isHtml - True if the message is HTML, false for plain text.
  */
-function showMessage(message, type = 'success') {
-    messageBox.textContent = message;
+function showMessage(message, type = 'success', isHtml = false) {
+    // Clear previous classes and content
+    messageBox.classList.remove('show', 'success', 'error', 'info');
+    messageBox.textContent = ''; // Clear direct text content
+    messageIcon.style.display = 'none'; // Hide icon by default
+    messageContent.innerHTML = ''; // Clear content div
+
     if (type === 'clear') {
-        messageBox.classList.remove('show', 'success', 'error', 'info');
-        messageBox.textContent = '';
         return;
     }
-    messageBox.className = `fixed top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-md shadow-md show ${type}`;
+
+    // Set message content
+    if (isHtml) {
+        messageContent.innerHTML = message;
+        messageIcon.style.display = 'block'; // Show icon for HTML (success) messages
+    } else {
+        messageContent.textContent = message;
+        messageIcon.style.display = 'none'; // Hide icon for plain text messages
+    }
+
+    // Apply type-specific classes
+    messageBox.classList.add('show', type);
+
+    // Set timeout to hide the message, longer for success message
+    const displayDuration = (type === 'success' && isHtml) ? 8000 : 5000; // 8 seconds for detailed success, 5 for others
     setTimeout(() => {
         messageBox.classList.remove('show');
         messageBox.classList.remove(type);
-        messageBox.textContent = '';
-    }, 5000); // Increased duration to 5 seconds for important messages
+        messageContent.innerHTML = ''; // Clear content when hiding
+        messageIcon.style.display = 'none'; // Hide icon when hiding
+    }, displayDuration);
 }
 
 /**
@@ -320,7 +341,6 @@ signupForm.addEventListener('submit', async (event) => {
 
     // If all client-side validations pass, proceed with Firebase
     if (isValid) {
-        // Show loading UI on the button and general overlay
         showLoading('Signing you up, please wait...');
         try {
             // Create user in Firebase Authentication
@@ -351,7 +371,16 @@ signupForm.addEventListener('submit', async (event) => {
             await setDoc(userProfileDocRef, userData);
 
             // --- Post-signup feedback and redirection ---
-            showMessage('Sign Up successful! A verification email has been sent to your email address. Please check your inbox and click the verification link. Your account will be active once both verified and approved by an admin.', 'success');
+            const successHtmlMessage = `
+                <strong>Your registration has been successfully submitted.</strong>
+                <p style="margin-top: 1rem; margin-bottom: 0.5rem; font-weight: normal;">Please take the following steps to activate your account:</p>
+                <ol>
+                    <li><strong>1. Email Verification:</strong> <span>A verification email has been sent to your inbox. Kindly click the link within the email to verify your address.</span></li>
+                    <li><strong>2. Administrative Review:</strong> <span>Upon successful email verification, your account will undergo a review by our administration team. Your account status is currently pending approval.</span></li>
+                    <li><strong>3. Account Activation:</strong> <span>You will receive a separate email notification once your account has been approved and activated.</span></li>
+                </ol>
+            `;
+            showMessage(successHtmlMessage, 'success', true); // Pass true for isHtml
 
             // Immediately sign out the user.
             await signOut(auth);
@@ -362,10 +391,10 @@ signupForm.addEventListener('submit', async (event) => {
             updatePasswordStrength(); // Reset password strength indicators
 
             hideLoading(); // Hide loading UI on success
-            // Redirect to the login page after a short delay
+            // Redirect to the login page after a short delay (longer for success message)
             setTimeout(() => {
                 window.location.href = 'userloginform.html'; // Redirect to login page
-            }, 5000); // Redirect after 5 seconds to allow user to read the message
+            }, 8000); // Redirect after 8 seconds to allow user to read the detailed message
 
         } catch (error) {
             console.error("Error during sign up or saving to Firestore:", error);
@@ -381,7 +410,7 @@ signupForm.addEventListener('submit', async (event) => {
             } else if (error.message) {
                 errorMessage = error.message; // Catch generic Firebase errors like "Missing or insufficient permissions."
             }
-            showMessage(`Sign Up failed: ${errorMessage}`, 'error');
+            showMessage(`Sign Up failed: ${errorMessage}`, 'error', false); // Pass false for plain text error
             hideLoading(); // Hide loading UI on error
         }
     }
@@ -390,6 +419,6 @@ signupForm.addEventListener('submit', async (event) => {
 // Switch to Login Page
 loginLink.addEventListener('click', (event) => {
     event.preventDefault();
-    showMessage('Redirecting to Login Page...', 'info');
-    window.location.href = 'userloginform.html';
+    showMessage('Redirecting to Login Page...', 'info', false); // Pass false for plain text info
+    window.location.href = 'userloginform.html'; // Ensure this points to your login form
 });
