@@ -470,6 +470,25 @@
         .hide-main-content {
             display: none !important;
         }
+
+        /* Password Strength Gauge Styles */
+        #password-strength-gauge {
+            background-color: #e0e0e0; /* Default background for empty gauge */
+        }
+
+        /* Strength levels - colors will be applied by JS */
+        .strength-0 { background-color: #ef4444; /* Red - Very Weak */ }
+        .strength-1 { background-color: #f97316; /* Orange - Weak */ }
+        .strength-2 { background-color: #facc15; /* Yellow - Medium */ }
+        .strength-3 { background-color: #84cc16; /* Light Green - Strong */ }
+        .strength-4 { background-color: #22c55e; /* Green - Very Strong / Excellent */ }
+
+        /* Text colors for strength feedback */
+        .text-strength-0 { color: #ef4444; }
+        .text-strength-1 { color: #f97316; }
+        .text-strength-2 { color: #facc15; }
+        .text-strength-3 { color: #84cc16; }
+        .text-strength-4 { color: #22c55e; }
     </style>
 </head>
 <body class="bg-gray-100 font-inter">
@@ -583,6 +602,10 @@
                         <li id="password-symbol-check">Include at least one special character (e.g., !@#$)</li>
                         <li id="password-number-check">Include at least one numeric digit</li>
                     </ul>
+                    <div id="password-strength-container" class="mt-2 mb-2">
+                        <div id="password-strength-gauge" class="h-2 rounded-full transition-all duration-300 ease-in-out" style="width: 0%;"></div>
+                        <p id="password-strength-text" class="text-xs text-gray-500 mt-1 font-semibold">Type password...</p>
+                    </div>
                 </div>
                 <button type="submit" id="signup-button" class="w-full">Sign Up</button>
                 <div class="text-center mt-4">

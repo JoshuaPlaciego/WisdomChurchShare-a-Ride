@@ -57,6 +57,11 @@ const passwordCapitalCheck = document.getElementById('password-capital-check');
 const passwordSymbolCheck = document.getElementById('password-symbol-check');
 const passwordNumberCheck = document.getElementById('password-number-check');
 
+// NEW: Password Strength Gauge Elements
+const passwordStrengthGauge = document.getElementById('password-strength-gauge');
+const passwordStrengthText = document.getElementById('password-strength-text');
+
+
 // References for loading UI
 const loadingOverlay = document.getElementById('loading-overlay');
 const loadingMessage = document.getElementById('loading-message');
@@ -218,6 +223,76 @@ function updatePasswordStrength() {
     updateCheck(passwordNumberCheck, /\d/.test(password));
 }
 
+/**
+ * Checks password strength and updates the visual gauge and text.
+ * This is a more complex scoring system than just pass/fail for requirements.
+ * @param {string} password - The password string to evaluate.
+ */
+function checkPasswordStrengthAndDisplayGauge(password) {
+    let score = 0;
+    const requirements = [
+        { regex: /[a-z]/, points: 1, met: false }, // Lowercase letters
+        { regex: /[A-Z]/, points: 1, met: false }, // Uppercase letters
+        { regex: /\d/, points: 1, met: false },    // Numbers
+        { regex: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, points: 2, met: false } // Special characters
+    ];
+
+    // Check for character type diversity
+    requirements.forEach(req => {
+        if (req.regex.test(password)) {
+            score += req.points;
+            req.met = true;
+        }
+    });
+
+    // Length bonus (more length = more points, up to a point)
+    if (password.length >= 8) score += 2;
+    if (password.length >= 12) score += 2;
+    if (password.length >= 16) score += 2;
+
+    // Deduct points for too short
+    if (password.length < 6) score = 0;
+
+    // Cap the score and determine strength level
+    let strengthLevel = 0; // 0: Very Weak, 1: Weak, 2: Medium, 3: Strong, 4: Excellent
+    let strengthText = 'Very Weak';
+
+    if (password.length === 0) {
+        score = 0;
+        strengthLevel = 0;
+        strengthText = 'Type password...';
+    } else if (score < 3) { // Only meets 1-2 types, or very short
+        strengthLevel = 0;
+        strengthText = 'Very Weak';
+    } else if (score < 5) { // Meets 2-3 types, moderate length
+        strengthLevel = 1;
+        strengthText = 'Weak';
+    } else if (score < 7) { // Meets 3-4 types, good length
+        strengthLevel = 2;
+        strengthText = 'Medium';
+    } else if (score < 9) { // Meets all types, good length
+        strengthLevel = 3;
+        strengthText = 'Strong';
+    } else { // Excellent, very long and diverse
+        strengthLevel = 4;
+        strengthText = 'Excellent';
+    }
+
+    // Adjust score for gauge width based on level
+    let gaugeWidth = (strengthLevel + 1) * 20; // 20%, 40%, 60%, 80%, 100%
+    if (password.length === 0) gaugeWidth = 0; // No password, no gauge
+
+    // Update gauge bar
+    passwordStrengthGauge.style.width = `${gaugeWidth}%`;
+    passwordStrengthGauge.className = `h-2 rounded-full transition-all duration-300 ease-in-out strength-${strengthLevel}`;
+
+    // Update text
+    passwordStrengthText.textContent = strengthText;
+    passwordStrengthText.className = `text-xs mt-1 font-semibold text-strength-${strengthLevel}`;
+
+    // Ensure the main password requirements list also updates (already handled by updatePasswordStrength)
+}
+
 // --- Loading UI Functions ---
 /**
  * Shows the loading overlay, disables the form, and updates the button text.
@@ -252,6 +327,7 @@ function hideLoading() {
 // Initial password strength check AND mobile number initialization
 window.onload = () => {
     updatePasswordStrength();
+    checkPasswordStrengthAndDisplayGauge(passwordInput.value); // NEW: Initial gauge check
 
     if (mobileNumberInput.value === '' || !mobileNumberInput.value.startsWith('09')) {
         mobileNumberInput.value = '09';
@@ -280,7 +356,10 @@ togglePasswordButton.addEventListener('touchend', (e) => {
 });
 
 // Real-time password strength feedback
-passwordInput.addEventListener('input', updatePasswordStrength);
+passwordInput.addEventListener('input', () => {
+    updatePasswordStrength(); // Existing function for criteria list
+    checkPasswordStrengthAndDisplayGauge(passwordInput.value); // NEW: Update the gauge
+});
 
 
 // --- Mobile Number Input Logic ---
@@ -470,6 +549,7 @@ signupForm.addEventListener('submit', async (event) => {
             signupForm.reset();
             mobileNumberInput.value = '09';
             updatePasswordStrength();
+            checkPasswordStrengthAndDisplayGauge(''); // NEW: Reset gauge after successful signup
 
         } catch (error) {
             console.error("Error during sign up or saving to Firestore:", error);
