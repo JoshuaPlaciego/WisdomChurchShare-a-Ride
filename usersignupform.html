@@ -3,29 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Sign Up</title>
+    <title>User Sign Up Form</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Refined Message Box */
+        /* Refined Message Box - ENHANCED for Success Message Structure */
         #message-box {
             display: none;
             position: fixed;
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #f0fdf4;
-            color: #15803d;
-            padding: 1rem;
+            background-color: #f0fdf4; /* green-50 for success */
+            color: #15803d; /* green-800 for success */
+            padding: 1.5rem 2rem; /* Increased padding from previous version */
             border-radius: 0.75rem;
-            border: 1px solid #16a34a;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #16a34a; /* green-600 for success */
+            /* Enhanced shadow with a subtle green glow */
+            box-shadow: 0 8px 16px -4px rgba(21, 128, 61, 0.3), 0 4px 8px -2px rgba(21, 128, 61, 0.2);
             z-index: 10;
             opacity: 0;
             transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            min-width: 300px; /* Increased minimum width */
+            text-align: center; /* Center the text */
+            display: flex; /* Use flexbox for icon and text alignment */
+            flex-direction: column; /* Stack icon and text vertically */
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem; /* Space between icon and text */
         }
         #message-box.show {
-            display: block;
+            display: flex; /* Use flex when showing */
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
@@ -41,7 +49,49 @@
             border-color: #0ea5e9; /* Original blue-500 equivalent */
         }
 
-        /* General Form Styles */
+        /* Icon styling for message box */
+        .message-icon {
+            flex-shrink: 0; /* Prevent icon from shrinking */
+            margin-bottom: 0.5rem; /* Add space below icon */
+        }
+
+        /* Main text content within message box */
+        .message-content {
+            font-size: 1.1rem; /* Slightly larger text */
+            font-weight: 600; /* Bolder text */
+            line-height: 1.4; /* Improve readability for multi-line text */
+            color: #15803d; /* Ensure text color is consistent */
+            text-align: center; /* Ensure initial bold text is centered */
+        }
+
+        /* Styling for the ordered list within the message */
+        .message-content ol {
+            list-style: none; /* Remove default numbering */
+            padding: 0;
+            margin-top: 1rem; /* Space after the introductory sentence */
+            text-align: left; /* Align list items to the left */
+            width: 100%; /* Take full width of parent */
+        }
+
+        .message-content ol li {
+            margin-bottom: 0.75rem; /* Space between list items */
+            font-weight: normal; /* Ensure list item text is not bold by default */
+            line-height: 1.3;
+        }
+
+        .message-content ol li strong {
+            display: inline; /* Keep step titles inline with number */
+            margin-right: 0.5rem; /* Space after step title */
+            font-weight: 700; /* Make step titles bolder */
+            color: #0c4a16; /* Darker green for emphasis */
+        }
+        .message-content ol li span {
+            font-weight: normal; /* Ensure span content is not bold */
+            display: inline; /* Keep description inline with title */
+        }
+
+
+        /* General Form Styles - Copied from signup.html */
         .form-container {
             background-color: #f7fafc;
             border-radius: 1rem;
@@ -337,7 +387,13 @@
 </head>
 <body class="bg-gray-100 font-inter">
     <div class="container mx-auto p-6">
-        <div id="message-box" class=""></div>
+        <div id="message-box">
+            <svg class="message-icon w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div class="message-content">
+                </div>
+        </div>
 
         <section class="form-container">
             <div class="form-title-panel">
