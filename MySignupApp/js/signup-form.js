@@ -83,21 +83,17 @@ function showMessage(message, type = 'success', isHtml = false) {
     messageBox.classList.remove('show', 'success', 'error', 'info');
     if (messageContent) messageContent.innerHTML = ''; // Clear content div
 
-    
-
-    // --- NEW CODE START ---
-    // Create a map of types to icons for dynamic display
+    // DRY: Create a map of types to icons for dynamic display
     const iconMap = {
         'success': successIcon,
         'error': errorIcon,
         'info': infoIcon
     };
 
-    // Hide all icons first using the map (DRYing this part)
+    // DRY: Hide all icons first using the map
     Object.values(iconMap).forEach(icon => {
         if (icon) icon.style.display = 'none';
     });
-    // --- NEW CODE END ---
 
     if (type === 'clear') {
         messageBox.style.display = 'none';
@@ -119,14 +115,10 @@ function showMessage(message, type = 'success', isHtml = false) {
     messageBox.classList.add('show', type);
     messageBox.style.display = 'flex'; // Make message box visible
 
- // --- NEW CODE START ---
-// Show the appropriate icon based on type using the map (DRYing this part)
-if (iconMap[type]) {
-    iconMap[type].style.display = 'block';
-}
-// --- NEW CODE END ---
-
-// ... (rest of the showMessage function, specifically the 'if (type === 'success' ...' block) ...
+    // DRY: Show the appropriate icon based on type using the map
+    if (iconMap[type]) {
+        iconMap[type].style.display = 'block';
+    }
 
     // Add event listener for the Close button if it's a success message
     if (type === 'success' && isHtml) {
@@ -149,12 +141,10 @@ if (iconMap[type]) {
                 messageBox.classList.remove('show');
                 messageBox.classList.remove(type);
                 if (messageContent) messageContent.innerHTML = '';
-                // --- NEW CODE START ---
-    // Hide all icons when message box is cleared using the map (DRYing this part)
-    Object.values(iconMap).forEach(icon => {
-        if (icon) icon.style.display = 'none';
-    });
-    // --- NEW CODE END ---
+                // DRY: Hide all icons when message box is cleared using the map
+                Object.values(iconMap).forEach(icon => {
+                    if (icon) icon.style.display = 'none';
+                });
 
                 messageBox.style.display = 'none';
                 if (mainContentContainer) {
@@ -180,9 +170,16 @@ function handleSuccessClose() {
     messageBox.classList.remove('show', 'success', 'error', 'info');
     messageBox.style.display = 'none';
     if (messageContent) messageContent.innerHTML = '';
-    if (successIcon) successIcon.style.display = 'none';
-    if (errorIcon) errorIcon.style.display = 'none';
-    if (infoIcon) infoIcon.style.display = 'none';
+
+    // DRY: Hide all icons using the map for consistency
+    const iconMap = { // Re-declare iconMap as it's not global
+        'success': successIcon,
+        'error': errorIcon,
+        'info': infoIcon
+    };
+    Object.values(iconMap).forEach(icon => {
+        if (icon) icon.style.display = 'none';
+    });
 
 
     if (mainContentContainer) {
@@ -211,8 +208,6 @@ function formErrorResponse(inputID, response) {
     }
 }
 
-// ... (your existing formErrorResponse function ends here) ...
-
 /**
  * Clears all displayed error messages from the form.
  */
@@ -225,9 +220,6 @@ function clearAllFormErrors() {
         el.textContent = '';
     });
 }
-
-// ... (your existing updatePasswordStrength function or other code continues here) ...
-
 
 
 /**
@@ -455,12 +447,9 @@ signupForm.addEventListener('submit', async (event) => {
 
     let isValid = true;
 
-    // NEW: Clear all form errors using the helper function
+    // DRY: Clear all form errors using the helper function
     clearAllFormErrors();
     showMessage('', 'clear'); // This line is fine and should remain
-
-    // ... rest of your validation code ...
-});
 
     // --- Client-Side Validation ---
     if (!firstNameInput.value.trim()) {
