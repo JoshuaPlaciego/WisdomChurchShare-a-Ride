@@ -2,7 +2,7 @@
 
 // Import Firebase instances and authentication function from firebase-init.js
 import { auth, db, appId, getUserId } from './firebase-init.js';
-import { createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 
@@ -19,12 +19,18 @@ const emailInput = document.getElementById('email');
 const mobileNumberInput = document.getElementById('mobile_number');
 const passwordInput = document.getElementById('password');
 const togglePasswordButton = document.getElementById('toggle-password');
+const signupButton = document.getElementById('signup-button'); // Reference to the signup button
 
 // Password strength checker elements
 const passwordLengthCheck = document.getElementById('password-length-check');
 const passwordCapitalCheck = document.getElementById('password-capital-check');
 const passwordSymbolCheck = document.getElementById('password-symbol-check');
 const passwordNumberCheck = document.getElementById('password-number-check');
+
+// References for loading UI
+const loadingOverlay = document.getElementById('loading-overlay');
+const loadingMessage = document.getElementById('loading-message');
+
 
 /**
  * Displays a message in the message box.
@@ -43,7 +49,7 @@ function showMessage(message, type = 'success') {
         messageBox.classList.remove('show');
         messageBox.classList.remove(type);
         messageBox.textContent = '';
-    }, 3000);
+    }, 5000); // Increased duration to 5 seconds for important messages
 }
 
 /**
@@ -84,6 +90,44 @@ function updatePasswordStrength() {
     updateCheck(passwordCapitalCheck, /[A-Z]/.test(password));
     updateCheck(passwordSymbolCheck, /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password));
     updateCheck(passwordNumberCheck, /\d/.test(password));
+}
+
+// --- Loading UI Functions ---
+/**
+ * Shows the loading overlay, disables the form, and updates the button text.
+ * @param {string} message - Message for the central loading UI.
+ * @param {string} buttonText - Text to display on the submit button during loading.
+ */
+function showLoading(message = 'Please wait...', buttonText = 'Signing you up. Please wait...') {
+    loadingMessage.textContent = message;
+    loadingOverlay.classList.add('visible');
+
+    // Disable all form fields (excluding the button initially)
+    signupForm.querySelectorAll('input, select').forEach(element => {
+        element.disabled = true;
+    });
+
+    // Update and disable the signup button
+    signupButton.disabled = true;
+    signupButton.textContent = buttonText;
+    signupButton.classList.add('opacity-75', 'cursor-not-allowed'); // Add Tailwind classes for visual feedback
+}
+
+/**
+ * Hides the loading overlay, re-enables the form, and restores the button text.
+ */
+function hideLoading() {
+    loadingOverlay.classList.remove('visible');
+
+    // Enable all form fields
+    signupForm.querySelectorAll('input, select').forEach(element => {
+        element.disabled = false;
+    });
+
+    // Re-enable and restore the signup button
+    signupButton.disabled = false;
+    signupButton.textContent = 'Sign Up'; // Restore original text
+    signupButton.classList.remove('opacity-75', 'cursor-not-allowed'); // Remove loading classes
 }
 
 // --- Event Listeners ---
@@ -276,6 +320,8 @@ signupForm.addEventListener('submit', async (event) => {
 
     // If all client-side validations pass, proceed with Firebase
     if (isValid) {
+        // Show loading UI on the button and general overlay
+        showLoading('Signing you up, please wait...');
         try {
             // Create user in Firebase Authentication
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -304,10 +350,22 @@ signupForm.addEventListener('submit', async (event) => {
             const userProfileDocRef = doc(db, `artifacts/${appId}/users/${userId}/user_profiles`, 'profile_data');
             await setDoc(userProfileDocRef, userData);
 
-            showMessage('Sign Up successful! Please check your email for verification. Your account is pending admin approval.', 'success');
+            // --- Post-signup feedback and redirection ---
+            showMessage('Sign Up successful! A verification email has been sent to your email address. Please check your inbox and click the verification link. Your account will be active once both verified and approved by an admin.', 'success');
+
+            // Immediately sign out the user.
+            await signOut(auth);
+            console.log("User signed out after signup for verification process.");
+
             signupForm.reset(); // Clear the form
             mobileNumberInput.value = '09'; // Reset mobile number field specifically
             updatePasswordStrength(); // Reset password strength indicators
+
+            hideLoading(); // Hide loading UI on success
+            // Redirect to the login page after a short delay
+            setTimeout(() => {
+                window.location.href = 'login.html'; // Redirect to login page
+            }, 5000); // Redirect after 5 seconds to allow user to read the message
 
         } catch (error) {
             console.error("Error during sign up or saving to Firestore:", error);
@@ -324,14 +382,14 @@ signupForm.addEventListener('submit', async (event) => {
                 errorMessage = error.message; // Catch generic Firebase errors like "Missing or insufficient permissions."
             }
             showMessage(`Sign Up failed: ${errorMessage}`, 'error');
+            hideLoading(); // Hide loading UI on error
         }
     }
 });
 
-// Switch to Login Page (Simulated)
+// Switch to Login Page
 loginLink.addEventListener('click', (event) => {
     event.preventDefault();
-    showMessage('Redirecting to Login Page (Simulated)', 'info');
-    // In a real application, you would navigate to your login page:
-    window.location.href = 'login.html'; // Assuming login.html will be created next
+    showMessage('Redirecting to Login Page...', 'info');
+    window.location.href = 'login.html';
 });
