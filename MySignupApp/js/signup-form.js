@@ -43,7 +43,6 @@ const loadingMessage = document.getElementById('loading-message');
 function showMessage(message, type = 'success', isHtml = false) {
     // Clear previous classes and content
     messageBox.classList.remove('show', 'success', 'error', 'info');
-    messageBox.textContent = ''; // Clear direct text content
     messageIcon.style.display = 'none'; // Hide icon by default
     messageContent.innerHTML = ''; // Clear content div
 
