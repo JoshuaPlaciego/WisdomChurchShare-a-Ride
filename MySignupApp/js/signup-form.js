@@ -158,13 +158,14 @@ function handleSuccessClose() {
     if (messageContent) messageContent.innerHTML = '';
     if (messageIcon) messageIcon.style.display = 'none';
 
-    // No need to re-enable form fields or button state here, as we are immediately redirecting.
-    // The target page (userloginform.html) will handle its own initial state.
+    // IMPORTANT: Immediately hide the main content container as well
+    if (mainContentContainer) {
+        mainContentContainer.classList.add('hide-main-content');
+        console.log("CLOSE BUTTON: mainContentContainer hidden before redirect.");
+    }
 
-    // Redirect to the login page after a very short delay to ensure visual smoothness
-    setTimeout(() => {
-        window.location.href = 'userloginform.html';
-    }, 50); // 50ms delay for smooth transition
+    // Redirect to the login page immediately, no delay needed if elements are hidden instantly
+    window.location.href = 'userloginform.html';
 }
 
 
