@@ -14,12 +14,12 @@
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #f0fdf4; /* green-50 for success */
-            color: #15803d; /* green-800 for success */
+            /* Default for info/error, will be overridden by .success, .error, .info */
+            background-color: #f0fdf4; /* green-50 */
+            color: #15803d; /* green-800 */
             padding: 1.5rem 2rem; /* Increased padding from previous version */
             border-radius: 0.75rem;
-            border: 1px solid #16a34a; /* green-600 for success */
-            /* Enhanced shadow with a subtle green glow */
+            border: 1px solid #16a34a; /* green-600 */
             box-shadow: 0 8px 16px -4px rgba(21, 128, 61, 0.3), 0 4px 8px -2px rgba(21, 128, 61, 0.2);
             z-index: 10;
             opacity: 0;
@@ -37,6 +37,27 @@
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
+
+        /* NEW: Bluish theme for Success Message Box */
+        #message-box.success {
+            background-color: #e0f2fe; /* blue-50 for background */
+            color: #1e40af; /* blue-800 for main text, similar to form label text */
+            border-color: #2563eb; /* blue-600 for border */
+            box-shadow: 0 8px 16px -4px rgba(37, 99, 235, 0.3), 0 4px 8px -2px rgba(37, 99, 235, 0.2); /* Blue shadow */
+        }
+        /* Ensure the icon and list items also follow the new success theme */
+        #message-box.success .message-icon {
+            color: #1e40af; /* blue-800 for icon */
+        }
+        #message-box.success .message-content strong {
+            color: #1c3d8c; /* Slightly darker blue for strong text */
+        }
+        #message-box.success .message-content p,
+        #message-box.success .message-content ol li span {
+            color: #1e40af; /* blue-800 for normal text */
+        }
+
+
         #message-box.error {
             background-color: #fee2e2;
             color: #dc2626;
@@ -60,7 +81,7 @@
             font-size: 1.1rem; /* Slightly larger text */
             font-weight: 600; /* Bolder text */
             line-height: 1.4; /* Improve readability for multi-line text */
-            color: #15803d; /* Ensure text color is consistent */
+            /* color will be set by parent #message-box.success or other types */
             text-align: center; /* Ensure initial bold text is centered */
         }
 
@@ -83,11 +104,12 @@
             display: inline; /* Keep step titles inline with number */
             margin-right: 0.5rem; /* Space after step title */
             font-weight: 700; /* Make step titles bolder */
-            color: #0c4a16; /* Darker green for emphasis */
+            /* color will be set by parent #message-box.success or other types */
         }
         .message-content ol li span {
             font-weight: normal; /* Ensure span content is not bold */
             display: inline; /* Keep description inline with title */
+            /* color will be set by parent #message-box.success or other types */
         }
 
 
@@ -131,7 +153,7 @@
 
         .form-container label {
             font-weight: 500;
-            color: #4a5568;
+            color: #4a5568; /* This is the text color for form labels */
             display: block;
             margin-bottom: 0.5rem;
             font-size: 0.9rem;
@@ -348,7 +370,7 @@
             text-align: left;
         }
 
-        /* Styles for the loading overlay */
+        /* NEW: Styles for the loading overlay */
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -392,7 +414,7 @@
 </head>
 <body class="bg-gray-100 font-inter">
     <div id="message-box">
-        <svg class="message-icon w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <svg class="message-icon w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
         <div class="message-content">
