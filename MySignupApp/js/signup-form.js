@@ -364,7 +364,7 @@ signupForm.addEventListener('submit', async (event) => {
             hideLoading(); // Hide loading UI on success
             // Redirect to the login page after a short delay
             setTimeout(() => {
-                window.location.href = 'login.html'; // Redirect to login page
+                window.location.href = 'userloginform.html'; // Redirect to login page
             }, 5000); // Redirect after 5 seconds to allow user to read the message
 
         } catch (error) {
@@ -391,5 +391,5 @@ signupForm.addEventListener('submit', async (event) => {
 loginLink.addEventListener('click', (event) => {
     event.preventDefault();
     showMessage('Redirecting to Login Page...', 'info');
-    window.location.href = 'login.html';
+    window.location.href = 'userloginform.html';
 });
