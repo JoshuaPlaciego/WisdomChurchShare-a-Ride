@@ -39,6 +39,7 @@ const firstNameInput = document.getElementById('first_name');
 const lastNameInput = document.getElementById('last_name');
 const genderInput = document.getElementById('gender');
 const cityInput = document.getElementById('city');
+const roleInput = document.getElementById('role'); // NEW: Reference to the role input
 const facebookLinkInput = document.getElementById('facebook_link');
 const emailInput = document.getElementById('email');
 const mobileNumberInput = document.getElementById('mobile_number');
@@ -164,8 +165,10 @@ function handleSuccessClose() {
         console.log("CLOSE BUTTON: mainContentContainer hidden before redirect.");
     }
 
-    // Redirect to the login page immediately, no delay needed if elements are hidden instantly
-    window.location.href = 'userloginform.html';
+    // Redirect to the login page after a very short delay to ensure visual smoothness
+    setTimeout(() => {
+        window.location.href = 'userloginform.html';
+    }, 50); // 50ms delay for smooth transition
 }
 
 
@@ -380,6 +383,11 @@ signupForm.addEventListener('submit', async (event) => {
         formErrorResponse('city-error', 'City is required');
         isValid = false;
     }
+    // NEW: Validate role input
+    if (!roleInput.value) {
+        formErrorResponse('role-error', 'Role is required');
+        isValid = false;
+    }
 
     const facebookLinkPattern = /^(https?:\/\/(www\.)?)?facebook\.com\/[a-zA-Z0-9\.]+(\/?)$/i;
     if (!facebookLinkInput.value.trim()) {
@@ -449,6 +457,7 @@ signupForm.addEventListener('submit', async (event) => {
                 lastName: lastNameInput.value.trim(),
                 gender: genderInput.value,
                 city: cityInput.value,
+                role: roleInput.value, // NEW: Include role in user data
                 facebookLink: facebookLinkInput.value.trim(),
                 email: email,
                 mobileNumber: mobileNumber,
