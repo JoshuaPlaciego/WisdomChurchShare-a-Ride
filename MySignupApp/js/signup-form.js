@@ -12,7 +12,7 @@ const messageBox = document.getElementById('message-box');
 const messageIcon = messageBox ? messageBox.querySelector('.message-icon') : null;
 const messageContent = messageBox ? messageBox.querySelector('.message-content') : null;
 
-// Debugging logs for DOM elements
+// Debugging logs for DOM elements (These are helpful for initial setup but can be removed later)
 if (!messageBox) console.error("Error: #message-box not found!");
 if (messageBox && !messageIcon) console.error("Error: .message-icon not found inside #message-box!");
 if (messageBox && !messageContent) console.error("Error: .message-content not found inside #message-box!");
@@ -78,13 +78,19 @@ function showMessage(message, type = 'success', isHtml = false) {
     // Apply type-specific classes
     messageBox.classList.add('show', type);
 
-    // Set timeout to hide the message, longer for success message
-    const displayDuration = (type === 'success' && isHtml) ? 8000 : 5000; // 8 seconds for detailed success, 5 for others
+    // For the success message (which now doesn't auto-redirect), keep it visible until the user navigates
+    // For other messages (error/info) or if it's explicitly cleared, hide it after a duration
+    const displayDuration = (type === 'success' && isHtml) ? 15000 : 5000; // Keep success message longer (15s) or until manually clicked
+    // Important: We're making success message stay for a set duration, but the user can click Login anytime.
+    // If you want it to stay indefinitely until Login link clicked, you'd remove this setTimeout completely for success.
+    // For this flow, we'll keep it long, but the user clicks the link to dismiss effectively.
     setTimeout(() => {
-        messageBox.classList.remove('show');
-        messageBox.classList.remove(type);
-        if (messageContent) messageContent.innerHTML = ''; // Clear content when hiding
-        if (messageIcon) messageIcon.style.display = 'none'; // Hide icon when hiding
+        if (messageBox.classList.contains(type)) { // Only hide if it's still the active message
+            messageBox.classList.remove('show');
+            messageBox.classList.remove(type);
+            if (messageContent) messageContent.innerHTML = '';
+            if (messageIcon) messageIcon.style.display = 'none';
+        }
     }, displayDuration);
 }
 
@@ -406,10 +412,10 @@ signupForm.addEventListener('submit', async (event) => {
             updatePasswordStrength(); // Reset password strength indicators
 
             hideLoading(); // Hide loading UI on success
-            // Redirect to the login page after a short delay (longer for success message)
-            setTimeout(() => {
-                window.location.href = 'userloginform.html'; // Redirect to login page
-            }, 8000); // Redirect after 8 seconds to allow user to read the detailed message
+            // REMOVED: Automatic redirect to the login page. User will click the "Login" link manually.
+            // setTimeout(() => {
+            //     window.location.href = 'userloginform.html'; // Redirect to login page
+            // }, 8000); // Redirect after 8 seconds to allow user to read the detailed message
 
         } catch (error) {
             console.error("Error during sign up or saving to Firestore:", error);
