@@ -62,6 +62,9 @@ function showMessage(message, type = 'success', isHtml = false) {
     if (messageContent) messageContent.innerHTML = ''; // Clear content div
 
     if (type === 'clear') {
+        // IMPORTANT CHANGE: When clearing, only hide the message box.
+        // The form's visibility is handled when the success message is initially shown/hidden by close button.
+        messageBox.style.display = 'none';
         return;
     }
 
@@ -76,9 +79,13 @@ function showMessage(message, type = 'success', isHtml = false) {
 
     // Apply type-specific classes
     messageBox.classList.add('show', type);
+    messageBox.style.display = 'flex'; // IMPORTANT: Make message box visible
 
     // Add event listener for the Close button if it's a success message
     if (type === 'success' && isHtml) {
+        // IMPORTANT: Hide the signup form when the success message appears
+        signupForm.style.display = 'none';
+
         const closeButton = messageBox.querySelector('#close-success-message-button');
         if (closeButton) {
             // Remove any existing listeners to prevent duplicates
@@ -95,6 +102,7 @@ function showMessage(message, type = 'success', isHtml = false) {
                 messageBox.classList.remove(type);
                 if (messageContent) messageContent.innerHTML = '';
                 if (messageIcon) messageIcon.style.display = 'none';
+                messageBox.style.display = 'none'; // Hide message box after timeout
             }
         }, 5000); // 5 seconds for error/info messages
     }
@@ -102,21 +110,17 @@ function showMessage(message, type = 'success', isHtml = false) {
 
 /**
  * Handles the click event for the success message's close button.
- * This function will hide the message, re-enable the form, and redirect to login.
+ * This function will hide the message and redirect to login.
+ * The form's visibility and button state are not reset here, as we are immediately redirecting.
  */
 function handleSuccessClose() {
     // Hide the success message
-    showMessage('', 'clear'); // Use clear type to instantly hide and reset message box
+    showMessage('', 'clear'); // This will now only hide the message box, not show the form.
 
-    // Re-enable form fields and restore button state
-    signupForm.querySelectorAll('input, select').forEach(element => {
-        element.disabled = false;
-    });
-    signupButton.disabled = false;
-    signupButton.textContent = 'Sign Up'; // Restore original text
-    signupButton.classList.remove('opacity-75', 'cursor-not-allowed');
+    // No need to re-enable form fields or button state here, as we are immediately redirecting.
+    // The target page (userloginform.html) will handle its own initial state.
 
-    // Redirect to the login page
+    // Redirect to the login page immediately
     window.location.href = 'userloginform.html';
 }
 
@@ -428,8 +432,7 @@ signupForm.addEventListener('submit', async (event) => {
             `;
             showMessage(successHtmlMessage, 'success', true); // Pass true for isHtml
 
-            // IMPORTANT: Call hideLoading() here to make the loading overlay disappear.
-            // hideLoading() now only hides the overlay and resets button text, but keeps it disabled.
+            // Hide the loading overlay immediately
             hideLoading();
 
             // Immediately sign out the user.
@@ -439,6 +442,9 @@ signupForm.addEventListener('submit', async (event) => {
             signupForm.reset(); // Clear the form
             mobileNumberInput.value = '09'; // Reset mobile number field specifically
             updatePasswordStrength(); // Reset password strength indicators
+
+            // IMPORTANT: Hide the entire signup form here.
+            signupForm.style.display = 'none'; // This is the key change for hiding the form
 
         } catch (error) {
             console.error("Error during sign up or saving to Firestore:", error);
@@ -463,6 +469,7 @@ signupForm.addEventListener('submit', async (event) => {
 // Switch to Login Page (This link will now trigger the same close/redirect logic)
 loginLink.addEventListener('click', (event) => {
     event.preventDefault();
-    showMessage('Redirecting to Login Page...', 'info', false); // Pass false for plain text info
+    // You can choose to show an info message here, or just directly trigger the close/redirect logic
+    showMessage('Redirecting to Login Page...', 'info', false);
     window.location.href = 'userloginform.html'; // Ensure this points to your login form
 });
