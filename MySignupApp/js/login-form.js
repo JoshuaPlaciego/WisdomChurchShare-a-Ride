@@ -272,9 +272,9 @@ loginForm.addEventListener('submit', async (event) => {
             console.log("Is email verified from user object?", user.emailVerified);
             // --- END DEBUGGING LOGS ---
 
-            // --- NEW: Explicitly check email verification status immediately ---
+            // --- CRITICAL FIX: Explicitly check email verification status immediately and return ---
             if (!user.emailVerified) {
-                console.log("Email is not verified after successful sign-in. Displaying specific message.");
+                console.log("Email is NOT verified after successful sign-in. Displaying specific message.");
                 const unverifiedHtmlMessage = `
                     <strong>Email Not Verified</strong>
                     <p style="margin-top: 1rem; margin-bottom: 0.5rem; font-weight: normal;">
@@ -290,12 +290,41 @@ loginForm.addEventListener('submit', async (event) => {
                 `;
                 showMessage(unverifiedHtmlMessage, 'info', true, true); // Stay visible
 
-                // Sign out the user immediately if email is not verified
-                await auth.signOut();
+                // Add event listener for resend button
+                const resendButton = messageBox.querySelector('#resend-verification-button');
+                if (resendButton) {
+                    resendButton.onclick = async () => {
+                        resendButton.disabled = true;
+                        resendButton.textContent = 'Sending...';
+                        try {
+                            if (auth.currentUser) { // Ensure user is still signed in before resending
+                                await sendEmailVerification(auth.currentUser);
+                                showMessage('Verification email resent! Please check your inbox.', 'success', false, false); // Auto-hide
+                            } else {
+                                console.error("No current user to resend verification email to.");
+                                showMessage('Failed to resend verification email. Please try logging in again.', 'error', false, false);
+                            }
+                        } catch (resendError) {
+                            console.error("Error resending verification email:", resendError);
+                            showMessage(`Failed to resend email: ${resendError.message}`, 'error', false, false); // Auto-hide
+                        } finally {
+                            resendButton.disabled = false;
+                            resendButton.textContent = 'Resend Verification Email';
+                        }
+                    };
+                }
+
+                // Add event listener for close button
+                const closeUnverifiedButton = messageBox.querySelector('#close-unverified-message-button');
+                if (closeUnverifiedButton) {
+                    closeUnverifiedButton.onclick = handleGenericMessageClose; // Reuse generic close
+                }
+
+                await auth.signOut(); // Sign out the user immediately after showing the message
                 hideLoading(); // Hide loading as message is now displayed
-                return; // Stop execution here
+                return; // *** STOP EXECUTION HERE ***
             }
-            // --- END NEW CHECK ---
+            // --- END CRITICAL FIX ---
 
 
             // Fetch user profile to check status (only if email is verified)
