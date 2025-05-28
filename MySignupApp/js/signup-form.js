@@ -8,7 +8,6 @@ import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-
 
 // DOM element references
 const messageBox = document.getElementById('message-box');
-// IMPORTANT: Add checks here to see if elements are found
 const messageIcon = messageBox ? messageBox.querySelector('.message-icon') : null;
 const messageContent = messageBox ? messageBox.querySelector('.message-content') : null;
 
@@ -78,21 +77,49 @@ function showMessage(message, type = 'success', isHtml = false) {
     // Apply type-specific classes
     messageBox.classList.add('show', type);
 
-    // For the success message (which now doesn't auto-redirect), keep it visible until the user navigates
-    // For other messages (error/info) or if it's explicitly cleared, hide it after a duration
-    const displayDuration = (type === 'success' && isHtml) ? 15000 : 5000; // Keep success message longer (15s) or until manually clicked
-    // Important: We're making success message stay for a set duration, but the user can click Login anytime.
-    // If you want it to stay indefinitely until Login link clicked, you'd remove this setTimeout completely for success.
-    // For this flow, we'll keep it long, but the user clicks the link to dismiss effectively.
-    setTimeout(() => {
-        if (messageBox.classList.contains(type)) { // Only hide if it's still the active message
-            messageBox.classList.remove('show');
-            messageBox.classList.remove(type);
-            if (messageContent) messageContent.innerHTML = '';
-            if (messageIcon) messageIcon.style.display = 'none';
+    // *** NEW: Add event listener for the Close button if it's a success message ***
+    if (type === 'success' && isHtml) {
+        const closeButton = messageBox.querySelector('#close-success-message-button');
+        if (closeButton) {
+            // Remove any existing listeners to prevent duplicates
+            closeButton.removeEventListener('click', handleSuccessClose);
+            closeButton.addEventListener('click', handleSuccessClose);
         }
-    }, displayDuration);
+        // Success message now relies on the close button, so keep it visible indefinitely
+        // No setTimeout to hide automatically for success HTML messages
+    } else {
+        // For other message types (error/info), hide automatically after 5 seconds
+        setTimeout(() => {
+            if (messageBox.classList.contains(type)) { // Only hide if it's still the active message
+                messageBox.classList.remove('show');
+                messageBox.classList.remove(type);
+                if (messageContent) messageContent.innerHTML = '';
+                if (messageIcon) messageIcon.style.display = 'none';
+            }
+        }, 5000); // 5 seconds for error/info messages
+    }
 }
+
+/**
+ * Handles the click event for the success message's close button.
+ * This function will hide the message, re-enable the form, and redirect to login.
+ */
+function handleSuccessClose() {
+    // Hide the success message
+    showMessage('', 'clear'); // Use clear type to instantly hide and reset message box
+
+    // Re-enable form fields and restore button state (equivalent to hideLoading() logic)
+    signupForm.querySelectorAll('input, select').forEach(element => {
+        element.disabled = false;
+    });
+    signupButton.disabled = false;
+    signupButton.textContent = 'Sign Up';
+    signupButton.classList.remove('opacity-75', 'cursor-not-allowed');
+
+    // Redirect to the login page
+    window.location.href = 'userloginform.html';
+}
+
 
 /**
  * Displays a validation error message for a specific input field.
@@ -391,7 +418,7 @@ signupForm.addEventListener('submit', async (event) => {
             const userProfileDocRef = doc(db, `artifacts/${appId}/users/${userId}/user_profiles`, 'profile_data');
             await setDoc(userProfileDocRef, userData);
 
-            // --- Post-signup feedback and redirection ---
+            // --- Post-signup feedback and handling ---
             const successHtmlMessage = `
                 <strong>Your registration has been successfully submitted.</strong>
                 <p style="margin-top: 1rem; margin-bottom: 0.5rem; font-weight: normal;">Please take the following steps to activate your account:</p>
@@ -400,6 +427,9 @@ signupForm.addEventListener('submit', async (event) => {
                     <li><strong>2. Administrative Review:</strong> <span>Upon successful email verification, your account will undergo a review by our administration team. Your account status is currently pending approval.</span></li>
                     <li><strong>3. Account Activation:</strong> <span>You will receive a separate email notification once your account has been approved and activated.</span></li>
                 </ol>
+                <button id="close-success-message-button" class="mt-4 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition-all duration-300">
+                    Close & Proceed to Login
+                </button>
             `;
             showMessage(successHtmlMessage, 'success', true); // Pass true for isHtml
 
@@ -411,11 +441,8 @@ signupForm.addEventListener('submit', async (event) => {
             mobileNumberInput.value = '09'; // Reset mobile number field specifically
             updatePasswordStrength(); // Reset password strength indicators
 
-            hideLoading(); // Hide loading UI on success
-            // REMOVED: Automatic redirect to the login page. User will click the "Login" link manually.
-            // setTimeout(() => {
-            //     window.location.href = 'userloginform.html'; // Redirect to login page
-            // }, 8000); // Redirect after 8 seconds to allow user to read the detailed message
+            // IMPORTANT: Do NOT call hideLoading() here. Form remains blocked.
+            // hideLoading(); // Removed to keep form blocked
 
         } catch (error) {
             console.error("Error during sign up or saving to Firestore:", error);
@@ -432,14 +459,16 @@ signupForm.addEventListener('submit', async (event) => {
                 errorMessage = error.message; // Catch generic Firebase errors like "Missing or insufficient permissions."
             }
             showMessage(`Sign Up failed: ${errorMessage}`, 'error', false); // Pass false for plain text error
-            hideLoading(); // Hide loading UI on error
+            hideLoading(); // Hide loading UI on error (and re-enable form)
         }
     }
 });
 
-// Switch to Login Page
+// Switch to Login Page (This link will now trigger the same close/redirect logic)
 loginLink.addEventListener('click', (event) => {
     event.preventDefault();
-    showMessage('Redirecting to Login Page...', 'info', false); // Pass false for plain text info
-    window.location.href = 'userloginform.html'; // Ensure this points to your login form
+    // You can choose to show an info message here, or just directly trigger the close/redirect logic
+    showMessage('Redirecting to Login Page...', 'info', false);
+    // Alternatively, you could just call handleSuccessClose() here if you want it to behave identically
+    window.location.href = 'userloginform.html';
 });
