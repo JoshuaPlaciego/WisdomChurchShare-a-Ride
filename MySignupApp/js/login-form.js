@@ -2,22 +2,28 @@
 
 // Import Firebase instances and authentication function from firebase-init.js
 import { auth, db, appId, getUserId } from './firebase-init.js';
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 
 // DOM element references
 const messageBox = document.getElementById('message-box');
-const messageIcon = messageBox ? messageBox.querySelector('.message-icon') : null;
+// Updated to get all icon elements
+const successIcon = messageBox ? messageBox.querySelector('.icon-success') : null;
+const errorIcon = messageBox ? messageBox.querySelector('.icon-error') : null;
+const infoIcon = messageBox ? messageBox.querySelector('.icon-info') : null;
 const messageContent = messageBox ? messageBox.querySelector('.message-content') : null;
 
-// Debugging logs for DOM elements
+// Debugging logs for DOM elements (These are helpful for initial setup but can be removed later)
 if (!messageBox) console.error("Error: #message-box not found!");
-if (messageBox && !messageIcon) console.error("Error: .message-icon not found inside #message-box!");
+if (messageBox && !successIcon) console.error("Error: .icon-success not found inside #message-box!");
+if (messageBox && !errorIcon) console.error("Error: .icon-error not found inside #message-box!");
+if (messageBox && !infoIcon) console.error("Error: .icon-info not found inside #message-box!");
 if (messageBox && !messageContent) console.error("Error: .message-content not found inside #message-box!");
 
 
 const loginForm = document.getElementById('login-form');
+const mainContentContainer = document.getElementById('main-content-container'); // Assuming you have this on login page too
 const signupLink = document.getElementById('signup-link');
 const forgotPasswordLink = document.getElementById('forgot-password-link');
 const emailInput = document.getElementById('email');
@@ -35,8 +41,9 @@ const loadingMessage = document.getElementById('loading-message');
  * @param {string} message - The message to display (can be plain text or HTML).
  * @param {string} type - The type of message ('success', 'error', 'info', 'clear').
  * @param {boolean} isHtml - True if the message is HTML, false for plain text.
+ * @param {boolean} stayVisible - If true, the message will not auto-hide after a timeout.
  */
-function showMessage(message, type = 'success', isHtml = false) {
+function showMessage(message, type = 'success', isHtml = false, stayVisible = false) {
     if (!messageBox) {
         console.error("showMessage: #message-box element is missing. Cannot display message.");
         return;
@@ -48,9 +55,9 @@ function showMessage(message, type = 'success', isHtml = false) {
 
     // DRY: Create a map of types to icons for dynamic display
     const iconMap = {
-        'success': messageBox.querySelector('.icon-success'),
-        'error': messageBox.querySelector('.icon-error'),
-        'info': messageBox.querySelector('.icon-info')
+        'success': successIcon,
+        'error': errorIcon,
+        'info': infoIcon
     };
 
     // DRY: Hide all icons first using the map
@@ -60,6 +67,17 @@ function showMessage(message, type = 'success', isHtml = false) {
 
     if (type === 'clear') {
         messageBox.style.display = 'none';
+        if (mainContentContainer) {
+            mainContentContainer.classList.remove('hide-main-content');
+            console.log("CLEAR: mainContentContainer shown.");
+        }
+        // Re-enable form fields if cleared manually
+        loginForm.querySelectorAll('input, select').forEach(element => {
+            element.disabled = false;
+        });
+        loginButton.disabled = false;
+        loginButton.textContent = 'Login';
+        loginButton.classList.remove('opacity-75', 'cursor-not-allowed');
         return;
     }
 
@@ -79,21 +97,60 @@ function showMessage(message, type = 'success', isHtml = false) {
         iconMap[type].style.display = 'block';
     }
 
-    // Set timeout to hide the message
-    const displayDuration = (type === 'success' && isHtml) ? 8000 : 5000; // 8 seconds for detailed success, 5 for others
-    setTimeout(() => {
-        if (messageBox.classList.contains(type)) { // Only hide if it's still the active message
-            messageBox.classList.remove('show');
-            messageBox.classList.remove(type);
-            if (messageContent) messageContent.innerHTML = '';
-            // DRY: Hide all icons when message box is cleared using the map
-            Object.values(iconMap).forEach(icon => {
-                if (icon) icon.style.display = 'none';
-            });
-            messageBox.style.display = 'none';
-        }
-    }, displayDuration);
+    // Hide main content container if message should cover it
+    if (mainContentContainer) {
+        mainContentContainer.classList.add('hide-main-content');
+        console.log(`MESSAGE (${type}): mainContentContainer hidden.`);
+    }
+
+    // Disable form fields when message is displayed
+    loginForm.querySelectorAll('input, select').forEach(element => {
+        element.disabled = true;
+    });
+    loginButton.disabled = true;
+
+
+    // Set timeout to hide the message, unless stayVisible is true
+    if (!stayVisible) {
+        const displayDuration = (type === 'success' && isHtml) ? 8000 : 5000; // 8 seconds for detailed success, 5 for others
+        setTimeout(() => {
+            // Only hide if the current message type is still active
+            if (messageBox.classList.contains(type)) {
+                messageBox.classList.remove('show', type);
+                if (messageContent) messageContent.innerHTML = '';
+                Object.values(iconMap).forEach(icon => {
+                    if (icon) icon.style.display = 'none';
+                });
+                messageBox.style.display = 'none';
+                if (mainContentContainer) {
+                    mainContentContainer.classList.remove('hide-main-content');
+                    console.log(`MESSAGE (${type}): mainContentContainer reshown.`);
+                }
+                // Re-enable form fields
+                loginForm.querySelectorAll('input, select').forEach(element => {
+                    element.disabled = false;
+                });
+                loginButton.disabled = false;
+                loginButton.textContent = 'Login';
+                loginButton.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        }, displayDuration);
+    }
 }
+
+
+/**
+ * Handles the click event for the success message's close button.
+ * This function will hide the message and redirect to login.
+ */
+function handleGenericMessageClose() {
+    showMessage('', 'clear'); // Use the clear functionality to hide and re-enable form
+    setTimeout(() => {
+        // Any specific redirection for generic close can go here,
+        // but for now, it just clears the message and re-enables the form.
+    }, 50);
+}
+
 
 /**
  * Displays a validation error message for a specific input field.
@@ -130,28 +187,26 @@ function showLoading(message = 'Please wait...', buttonText = 'Logging you in. P
     loadingMessage.textContent = message;
     loadingOverlay.classList.add('visible');
 
+    // Disable all form fields (excluding the button initially)
     loginForm.querySelectorAll('input, select').forEach(element => {
         element.disabled = true;
     });
 
+    // Update and disable the login button
     loginButton.disabled = true;
     loginButton.textContent = buttonText;
-    loginButton.classList.add('opacity-75', 'cursor-not-allowed');
+    loginButton.classList.add('opacity-75', 'cursor-not-allowed'); // Add Tailwind classes for visual feedback
 }
 
 /**
- * Hides the loading overlay, re-enables the form, and restores the button text.
+ * Hides the loading overlay. Also resets the login button text, but keeps it disabled.
  */
 function hideLoading() {
     loadingOverlay.classList.remove('visible');
-
-    loginForm.querySelectorAll('input, select').forEach(element => {
-        element.disabled = false;
-    });
-
-    loginButton.disabled = false;
-    loginButton.textContent = 'Login';
-    loginButton.classList.remove('opacity-75', 'cursor-not-allowed');
+    // IMPORTANT: Form fields are NOT re-enabled here. They remain disabled until handleSuccessClose() is called or an error occurs.
+    // This ensures the form stays blocked while the message is displayed.
+    loginButton.textContent = 'Login'; // Restore original text
+    loginButton.classList.remove('opacity-75', 'cursor-not-allowed'); // Remove loading classes
 }
 
 
@@ -226,7 +281,8 @@ loginForm.addEventListener('submit', async (event) => {
                         window.location.href = 'dashboard.html'; // Replace with your actual dashboard page
                     }, 2000); // Short delay before redirecting
                 } else if (userData.status === 'pending') {
-                    showMessage(`Your account is pending approval. Please check your email for verification and wait for administrative review.`, 'info', false);
+                    // Specific message for pending approval
+                    showMessage(`Your account status is currently pending approval. Please wait for an administrator to review your application.`, 'info', false);
                     await auth.signOut(); // Sign out user if account is pending
                 } else if (userData.status === 'rejected') {
                     showMessage(`Your account has been rejected. Please contact support for more information.`, 'error', false);
@@ -259,11 +315,71 @@ loginForm.addEventListener('submit', async (event) => {
                 errorMessage = 'Network error. Please check your internet connection.';
             } else if (error.code === 'auth/too-many-requests') {
                 errorMessage = 'Too many failed login attempts. Please try again later.';
+            } else if (error.code === 'auth/email-not-verified') {
+                // --- NEW HANDLING FOR UNVERIFIED EMAIL ---
+                console.log("User email not verified.");
+                const unverifiedHtmlMessage = `
+                    <strong>Email Not Verified</strong>
+                    <p style="margin-top: 1rem; margin-bottom: 0.5rem; font-weight: normal;">
+                        Your email address (<strong>${email}</strong>) has not been verified.
+                        Please check your inbox (and spam folder) for a verification email.
+                    </p>
+                    <button id="resend-verification-button" class="message-box-button">
+                        Resend Verification Email
+                    </button>
+                    <button id="close-unverified-message-button" class="message-box-button" style="background-image: linear-gradient(to right, #6b7280, #4b5563); margin-left: 1rem;">
+                        Close
+                    </button>
+                `;
+                // Show as info, HTML, and make it stay visible until a button is clicked
+                showMessage(unverifiedHtmlMessage, 'info', true, true);
+
+                // Add event listener for resend button
+                const resendButton = messageBox.querySelector('#resend-verification-button');
+                if (resendButton) {
+                    resendButton.onclick = async () => {
+                        resendButton.disabled = true;
+                        resendButton.textContent = 'Sending...';
+                        try {
+                            // Ensure there is a current user before sending email
+                            // This might be tricky if user wasn't fully signed in via auth/email-not-verified
+                            // Firebase usually needs a user object to send verification.
+                            // The user object is present after signInWithEmailAndPassword, even if email is not verified.
+                            if (auth.currentUser) {
+                                await sendEmailVerification(auth.currentUser);
+                                showMessage('Verification email resent! Please check your inbox.', 'success', false, false); // Auto-hide
+                            } else {
+                                console.error("No current user to resend verification email to.");
+                                showMessage('Failed to resend verification email. Please try logging in again.', 'error', false, false);
+                            }
+                        } catch (resendError) {
+                            console.error("Error resending verification email:", resendError);
+                            showMessage(`Failed to resend email: ${resendError.message}`, 'error', false, false); // Auto-hide
+                        } finally {
+                            resendButton.disabled = false;
+                            resendButton.textContent = 'Resend Verification Email';
+                        }
+                    };
+                }
+
+                // Add event listener for close button
+                const closeUnverifiedButton = messageBox.querySelector('#close-unverified-message-button');
+                if (closeUnverifiedButton) {
+                    closeUnverifiedButton.onclick = handleGenericMessageClose; // Reuse generic close
+                }
+
+                // Do not hide loading here, as messageBox will manage it.
+                // Re-enable form fields will be handled by showMessage's clear logic or resend button's completion
             } else if (error.message) {
                 errorMessage = error.message;
             }
-            showMessage(`Login failed: ${errorMessage}`, 'error', false);
-            hideLoading();
+
+            // For general errors not handled by specific code, display in the message box
+            if (error.code !== 'auth/email-not-verified') {
+                showMessage(`Login failed: ${errorMessage}`, 'error', false, false); // Auto-hide for general errors
+                hideLoading(); // Hide loading only for general errors
+            }
+
         }
     }
 });
@@ -272,7 +388,7 @@ loginForm.addEventListener('submit', async (event) => {
 forgotPasswordLink.addEventListener('click', async (event) => {
     event.preventDefault();
     clearAllFormErrors();
-    showMessage('', 'clear');
+    showMessage('', 'clear'); // Clear any message box
 
     const email = emailInput.value.trim();
     if (!email) {
@@ -289,7 +405,7 @@ forgotPasswordLink.addEventListener('click', async (event) => {
     showLoading('Sending password reset email...', 'Sending...');
     try {
         await sendPasswordResetEmail(auth, email);
-        showMessage(`Password reset email sent to ${email}. Please check your inbox.`, 'success', false);
+        showMessage(`Password reset email sent to ${email}. Please check your inbox.`, 'success', false, false);
     } catch (error) {
         console.error("Error sending password reset email:", error);
         let errorMessage = "Failed to send password reset email.";
@@ -304,7 +420,7 @@ forgotPasswordLink.addEventListener('click', async (event) => {
         } else if (error.message) {
             errorMessage = error.message;
         }
-        showMessage(`Password reset failed: ${errorMessage}`, 'error', false);
+        showMessage(`Password reset failed: ${errorMessage}`, 'error', false, false);
     } finally {
         hideLoading();
     }
@@ -314,6 +430,6 @@ forgotPasswordLink.addEventListener('click', async (event) => {
 // Switch to Sign Up Page
 signupLink.addEventListener('click', (event) => {
     event.preventDefault();
-    showMessage('Redirecting to Sign Up Page...', 'info', false);
+    showMessage('Redirecting to Sign Up Page...', 'info', false, false); // Auto-hide
     window.location.href = 'usersignupform.html';
 });
