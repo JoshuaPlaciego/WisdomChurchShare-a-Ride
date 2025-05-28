@@ -269,7 +269,7 @@ loginForm.addEventListener('submit', async (event) => {
 
             // --- DEBUGGING LOGS ADDED HERE ---
             console.log("User object after successful sign-in:", user);
-            console.log("Is email verified from user object?", user.emailVerified);
+            console.log("Is email verified from user object (before check)?", user.emailVerified);
             // --- END DEBUGGING LOGS ---
 
             // --- CRITICAL FIX: Explicitly check email verification status immediately and return ---
