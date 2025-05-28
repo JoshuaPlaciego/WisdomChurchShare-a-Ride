@@ -10,7 +10,7 @@
         /* Refined Message Box - ENHANCED for Success Message Structure */
         #message-box {
             display: none;
-            position: fixed;
+            position: fixed; /* Keep it fixed so it floats above content */
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
@@ -21,7 +21,7 @@
             border: 1px solid #16a34a; /* green-600 for success */
             /* Enhanced shadow with a subtle green glow */
             box-shadow: 0 8px 16px -4px rgba(21, 128, 61, 0.3), 0 4px 8px -2px rgba(21, 128, 61, 0.2);
-            z-index: 10;
+            z-index: 10; /* Ensure it's above other content */
             opacity: 0;
             transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
             min-width: 300px; /* Increased minimum width */
@@ -383,22 +383,22 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* NEW: Class to hide the entire form container */
-        .hide-main-content { /* Renamed for clarity, applies to the main container */
+        /* NEW: Class to hide the entire main content container */
+        .hide-main-content {
             display: none !important; /* Force hide the container */
         }
     </style>
 </head>
 <body class="bg-gray-100 font-inter">
-    <div class="container mx-auto p-6" id="main-content-container"> <div id="message-box">
-            <svg class="message-icon w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <div class="message-content">
-                </div>
-        </div>
+    <div id="message-box">
+        <svg class="message-icon w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <div class="message-content">
+            </div>
+    </div>
 
-        <section class="form-container">
+    <div class="container mx-auto p-6" id="main-content-container"> <section class="form-container">
             <div class="form-title-panel">
                 <h2>Sign Up</h2>
             </div>
