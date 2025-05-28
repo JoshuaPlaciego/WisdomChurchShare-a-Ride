@@ -74,6 +74,8 @@
         .message-icon {
             flex-shrink: 0; /* Prevent icon from shrinking */
             margin-bottom: 0.5rem; /* Add space below icon */
+            width: 2.5rem; /* Slightly larger for the new icon: 40px */
+            height: 2.5rem; /* Slightly larger for the new icon: 40px */
         }
 
         /* Main text content within message box */
@@ -414,8 +416,9 @@
 </head>
 <body class="bg-gray-100 font-inter">
     <div id="message-box">
-        <svg class="message-icon w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        <svg class="message-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9 12l2 2 4-4" />
         </svg>
         <div class="message-content">
             </div>
