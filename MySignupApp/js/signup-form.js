@@ -113,7 +113,7 @@ function handleSuccessClose() {
         element.disabled = false;
     });
     signupButton.disabled = false;
-    signupButton.textContent = 'Sign Up';
+    signupButton.textContent = 'Sign Up'; // Restore original text
     signupButton.classList.remove('opacity-75', 'cursor-not-allowed');
 
     // Redirect to the login page
@@ -169,6 +169,7 @@ function updatePasswordStrength() {
  */
 function showLoading(message = 'Please wait...', buttonText = 'Signing you up. Please wait...') {
     loadingMessage.textContent = message;
+    loadingOverlay.style.display = 'flex'; // IMPORTANT: Explicitly set display to flex
     loadingOverlay.classList.add('visible');
 
     // Disable all form fields (excluding the button initially)
@@ -183,13 +184,14 @@ function showLoading(message = 'Please wait...', buttonText = 'Signing you up. P
 }
 
 /**
- * Hides the loading overlay. Note: This function no longer re-enables form fields on its own.
- * Form fields are re-enabled by handleSuccessClose() or on error.
+ * Hides the loading overlay. Also resets the signup button text, but keeps it disabled.
  */
 function hideLoading() {
     loadingOverlay.classList.remove('visible');
-    // IMPORTANT: Form fields are NOT re-enabled here. They remain disabled until handleSuccessClose() is called.
-    // This ensures the form stays blocked while the success message is displayed.
+    loadingOverlay.style.display = 'none'; // IMPORTANT: Explicitly set display to none
+    signupButton.textContent = 'Sign Up'; // Revert button text
+    // signupButton.disabled remains true from showLoading()
+    // signupButton.classList.remove('opacity-75', 'cursor-not-allowed'); // Keep these classes for disabled state
 }
 
 // --- Event Listeners ---
@@ -426,9 +428,8 @@ signupForm.addEventListener('submit', async (event) => {
             `;
             showMessage(successHtmlMessage, 'success', true); // Pass true for isHtml
 
-            // IMPORTANT CHANGE: Call hideLoading() here to make the loading overlay disappear.
-            // The form fields will remain disabled because showLoading() disabled them,
-            // and hideLoading() no longer re-enables them.
+            // IMPORTANT: Call hideLoading() here to make the loading overlay disappear.
+            // hideLoading() now only hides the overlay and resets button text, but keeps it disabled.
             hideLoading();
 
             // Immediately sign out the user.
@@ -462,8 +463,6 @@ signupForm.addEventListener('submit', async (event) => {
 // Switch to Login Page (This link will now trigger the same close/redirect logic)
 loginLink.addEventListener('click', (event) => {
     event.preventDefault();
-    // You can choose to show an info message here, or just directly trigger the close/redirect logic
-    showMessage('Redirecting to Login Page...', 'info', false);
-    // Alternatively, you could just call handleSuccessClose() here if you want it to behave identically
-    window.location.href = 'userloginform.html';
+    showMessage('Redirecting to Login Page...', 'info', false); // Pass false for plain text info
+    window.location.href = 'userloginform.html'; // Ensure this points to your login form
 });
