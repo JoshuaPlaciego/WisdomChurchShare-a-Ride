@@ -34,10 +34,11 @@
             color: #dc2626;
             border-color: #dc2626;
         }
+        /* Reverted info message box color to original */
         #message-box.info {
-            background-color: #e0f2fe;
-            color: #0284c7;
-            border-color: #0ea5e9;
+            background-color: #e0f2fe; /* Original blue-50 */
+            color: #0284c7; /* Original blue-700 equivalent */
+            border-color: #0ea5e9; /* Original blue-500 equivalent */
         }
 
         /* General Form Styles */
@@ -61,8 +62,9 @@
             border-color: #7dd3fc;
         }
 
+        /* Reverted form title panel gradient to original dark gray */
         .form-title-panel {
-            background-image: linear-gradient(to right, #4a5568, #2d3748);
+            background-image: linear-gradient(to right, #4a5568, #2d3748); /* Original dark gray gradient */
             padding: 0.75rem 1.5rem;
             border-radius: 0.75rem 0.75rem 0 0;
             margin-bottom: 2rem;
@@ -123,13 +125,14 @@
             cursor: text;
         }
 
+        /* Reverted button gradient to original dark gray */
         .form-container button {
             border-radius: 0.75rem;
             padding: 1rem 2rem;
             font-size: 1.25rem;
             font-weight: 600;
             transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0 4px 8px -1px rgba(0, 0, 0, 0.2);
-            background-image: linear-gradient(to right, #4a5568, #2d3748);
+            background-image: linear-gradient(to right, #4a5568, #2d3748); /* Original dark gray gradient */
             color: white;
             border: none;
             box-shadow: 0 4px 8px -1px rgba(0, 0, 0, 0.2);
@@ -144,21 +147,21 @@
             user-select: none;
         }
 
-        .form-container button:hover:not(:disabled) { /* Added :not(:disabled) */
-            background-image: linear-gradient(to right, #374151, #1a202c);
+        .form-container button:hover:not(:disabled) {
+            background-image: linear-gradient(to right, #374151, #1a202c); /* Original darker gray on hover */
             transform: translateY(-2px) scale(1.03);
             box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.3);
         }
 
-        .form-container button:active:not(:disabled) { /* Added :not(:disabled) */
+        .form-container button:active:not(:disabled) {
             transform: translateY(0) scale(1);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
-        .form-container button:disabled { /* Style for disabled button */
+        .form-container button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
-            background-image: linear-gradient(to right, #6b7280, #4b5563); /* Slightly darker disabled background */
+            background-image: linear-gradient(to right, #6b7280, #4b5563); /* Original lighter gray for disabled state */
             box-shadow: none;
             transform: none;
         }
@@ -317,10 +320,10 @@
             opacity: 1;
         }
 
-        /* Basic spinner animation */
+        /* Basic spinner animation - Reverted color to original dark gray */
         .spinner {
             border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left-color: #4a5568; /* Using a color from your existing palette */
+            border-left-color: #4a5568; /* Reverted to original dark gray */
             border-radius: 50%;
             width: 40px;
             height: 40px;
